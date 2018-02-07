@@ -75,7 +75,7 @@ use IEEE.NUMERIC_STD.ALL;
 																	
 entity RSACypher is
 	Generic (KEYSIZE: integer := 40);
-    Port (cypher: out std_logic_vector(KEYSIZE-1 downto 0);
+    Port (plaintext: out std_logic_vector(KEYSIZE-1 downto 0);
 			 clk: in std_logic;
 			 ds: in std_logic;
 			 reset: in std_logic;
@@ -88,14 +88,14 @@ attribute keep: string;
 
 component modmult is
 	Generic (MPWID: integer);
-    Port ( mpand : in std_logic_vector(MPWID-1 downto 0);
-           mplier : in std_logic_vector(MPWID-1 downto 0);
-           modulus : in std_logic_vector(MPWID-1 downto 0);
-           product : out std_logic_vector(MPWID-1 downto 0);
-           clk : in std_logic;
-           ds : in std_logic;
-			  reset : in std_logic;
-			  ready: out std_logic);
+    Port (mpand : in std_logic_vector(MPWID-1 downto 0);
+          mplier : in std_logic_vector(MPWID-1 downto 0);
+          modulus : in std_logic_vector(MPWID-1 downto 0);
+          product : out std_logic_vector(MPWID-1 downto 0);
+          clk : in std_logic;
+          ds : in std_logic;
+			 reset : in std_logic;
+			 ready: out std_logic);
 end component;
 
 signal modreg: std_logic_vector(KEYSIZE-1 downto 0);	-- store the modulus value during operation
@@ -113,14 +113,6 @@ signal done: std_logic;	-- signal to indicate encryption complete
 signal indata: std_logic_vector(KEYSIZE-1 downto 0) ;
 signal inExp: std_logic_vector(KEYSIZE-1 downto 0); 
 signal inMod: std_logic_vector(KEYSIZE-1 downto 0);
---   The following attributes can be set to make signal tracing easier
-
---attribute keep of multrdy: signal is "true";
---attribute keep of sqrrdy: signal is "true";
---attribute keep of bothrdy: signal is "true";
---attribute keep of multgo: signal is "true";
---attribute keep of sqrgo: signal is "true";
-
 
 begin
 
@@ -172,7 +164,7 @@ begin
 -- after first time
 			elsif count = 0 then
 				if bothrdy = '1' and multgo = '0' then
-					cypher <= tempout;		-- set output value
+					plaintext <= tempout;		-- set output value
 					done <= '1';
 				end if;
 			elsif bothrdy = '1' then
