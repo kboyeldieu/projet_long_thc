@@ -33,7 +33,7 @@ use IEEE.NUMERIC_STD.ALL;
 --use UNISIM.VComponents.all;
 
 entity divunsigned is
-Generic (MPWID: integer);
+Generic (MPWID: integer := 40);
     Port ( dividend : in std_logic_vector(MPWID-1 downto 0);
            divisor : in std_logic_vector(MPWID-1 downto 0);
            quotient : out std_logic_vector(MPWID-1 downto 0);
@@ -50,23 +50,26 @@ signal tmpquotient : std_logic_vector(MPWID-1 downto 0);
 signal tmpremainder : std_logic_vector(MPWID-1 downto 0);
 signal tmpdividend : std_logic_vector (MPWID-1 downto 0);
 signal first : std_logic;
-signal counter : integer range 0 to MPWID-1;
+signal counter : integer range -1 to MPWID-1;
 signal step : std_logic;
 
 begin
-	
+
 	quotient <= tmpquotient;
 	remainder <= tmpremainder;
 	
-	divide: process (clk, reset, ds, first, step) is
+	divide: process (clk, reset, ds, first) is
 	
 	begin
 	if reset = '1' then
 		first <= '1';
+		ready <= '0';
+		counter <= MPWID-1;
 	elsif rising_edge(clk) then
-		if counter = 0 then
+		if counter < 0 then
 			ready <= '1';
 			counter <= MPWID-1;
+			first <= '1';
 		elsif first = '1' then
 			if ds = '1' then
 				tmpquotient <= (others => '0');
@@ -74,19 +77,20 @@ begin
 				tmpdividend <= dividend;
 				first <= '0';
 				step <= '0';
+				ready <= '0';
 				counter <= MPWID-1;
 			end if;
 		elsif step = '0' then
-			tmpremainder <= tmpremainder(MPWID-2 downto 0) & tmpdividend(0);
-			tmpdividend <= '0' & tmpdividend(MPWID-1 downto 1);
+			tmpremainder <= tmpremainder(MPWID-2 downto 0) & tmpdividend(counter);
+			--tmpdividend <= '0' & tmpdividend(MPWID-1 downto 1);
 			step <= '1';
 		elsif step = '1' then
-			if tmpremainder >= dividend then
-				tmpremainder <= tmpremainder - dividend;
+			if tmpremainder >= divisor then
+				tmpremainder <= tmpremainder - divisor;
 				tmpquotient(counter) <= '1';
-				counter <= counter - 1;
-				step <= '0';
 			end if;
+			counter <= counter - 1;
+			step <= '0';
 		end if;
 	end if;
 		
