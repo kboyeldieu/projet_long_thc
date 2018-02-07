@@ -22,15 +22,12 @@ ARCHITECTURE behavior OF testbench IS
 		clk : IN std_logic;
 		ds : IN std_logic;
 		reset : IN std_logic;          
-		cypher : OUT std_logic_vector(39 downto 0);
+		plaintext : OUT std_logic_vector(39 downto 0);
 		ready : OUT std_logic
 		);
 	END COMPONENT;
 
-	--SIGNAL indata :  std_logic_vector(39 downto 0);
-	--SIGNAL inexp :  std_logic_vector(39 downto 0);
-	--SIGNAL inmod :  std_logic_vector(39 downto 0);
-	SIGNAL cypher :  std_logic_vector(39 downto 0);
+	SIGNAL plaintext :  std_logic_vector(39 downto 0);
 	SIGNAL clk :  std_logic;
 	SIGNAL ds :  std_logic;
 	SIGNAL reset :  std_logic;
@@ -39,7 +36,7 @@ ARCHITECTURE behavior OF testbench IS
 BEGIN
 
 	uut: rsacypher PORT MAP(
-		cypher => cypher,
+		plaintext => plaintext,
 		clk => clk,
 		ds => ds,
 		reset => reset,
@@ -58,9 +55,6 @@ BEGIN
 		reset <= '0';
 		wait until clk = '1';
 		wait until clk = '0';
-		--inexp <= x"00903ad900";
-		--inmod <= x"03b2c1593f";
-		--indata <= x"0072418300"; 
 		wait until clk = '1';
 		wait for 2ns;
 		ds <= '1';
@@ -68,7 +62,6 @@ BEGIN
 		ds <= '0';
 		wait until ready = '1';
 		wait;
--- decrypt exponent		inexp <= x"02d80e39";
 	END PROCESS;
 
 
