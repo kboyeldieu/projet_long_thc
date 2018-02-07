@@ -44,8 +44,8 @@
 --
 
 -- This module implements the RSA Public Key Cypher. It expects to receive the data block
--- to be encrypted or decrypted on the indata bus, the exponent to be used on the inExp bus,
--- and the modulus on the inMod bus. The data block must have a value less than the modulus.
+-- to be encrypted or decrypted on the c bus, the exponent to be used on the d bus,
+-- and the modulus on the n bus. The data block must have a value less than the modulus.
 -- It may be worth noting that in practice the exponent is not restricted to the size of the
 -- modulus, as would be implied by the bus sizes used in this design. This design must
 -- therefore be regarded as a demonstration only.
@@ -110,15 +110,15 @@ signal multrdy, sqrrdy, bothrdy: std_logic;	-- signals to indicate completion of
 signal multgo, sqrgo: std_logic;	-- signals to trigger start of multiplications
 signal done: std_logic;	-- signal to indicate encryption complete
 
-signal indata: std_logic_vector(KEYSIZE-1 downto 0) ;
-signal inExp: std_logic_vector(KEYSIZE-1 downto 0); 
-signal inMod: std_logic_vector(KEYSIZE-1 downto 0);
+signal c: std_logic_vector(KEYSIZE-1 downto 0); -- cyphertext to decrypt
+signal d: std_logic_vector(KEYSIZE-1 downto 0); -- private key
+signal n: std_logic_vector(KEYSIZE-1 downto 0); -- modulus
 
 begin
 
-	indata <= x"03273923ff";
-	inExp <= x"02103f7fff";
-	inMod <= x"0ef03f7fff";
+	c <= x"0000123456";
+	d <= x"1111111111";
+	n <= x"0005488fc1";
 	ready <= done;
 	bothrdy <= multrdy and sqrrdy;
 	
@@ -158,7 +158,7 @@ begin
 			if done = '1' then
 				if ds = '1' then
 -- first time through
-					count <= '0' & inExp(KEYSIZE-1 downto 1);
+					count <= '0' & d(KEYSIZE-1 downto 1);
 					done <= '0';
 				end if;
 -- after first time
@@ -187,8 +187,8 @@ begin
 			if done = '1' then
 				if ds = '1' then
 		-- first time through, input is sampled only once
-					modreg <= inMod;
-					root <= indata;
+					modreg <= n;
+					root <= c;
 				end if;
 		-- after first time, square result is fed back to multiplier
 			else
@@ -214,13 +214,13 @@ begin
 		--		multiplier with the message value. Otherwise, we seed it with 1.
 		--    The square is set to 1, so the result of the first multiplication will be
 		--    either 1 or the initial message value
-					if inExp(0) = '1' then
-						tempin <= indata;
+					if d(0) = '1' then
+						tempin <= c;
 					else
 						tempin(KEYSIZE-1 downto 1) <= (others => '0');
 						tempin(0) <= '1';
 					end if;
-					modreg <= inMod;
+					modreg <= n;
 					sqrin(KEYSIZE-1 downto 1) <= (others => '0');
 					sqrin(0) <= '1';
 				end if;
