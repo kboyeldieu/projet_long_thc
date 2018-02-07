@@ -45,29 +45,7 @@ end modinv;
 
 architecture modinv1 of modinv is
 
-component modmult is
-	Generic (MPWID: integer := 40);
-    Port ( mpand : in std_logic_vector(MPWID-1 downto 0);
-           mplier : in std_logic_vector(MPWID-1 downto 0);
-           modulus : in std_logic_vector(MPWID-1 downto 0);
-           product : out std_logic_vector(MPWID-1 downto 0);
-           clk : in std_logic;
-           ds : in std_logic;
-			  reset : in std_logic;
-			  ready: out std_logic);
-end component;
 
-component divunsigned is
-Generic (MPWID: integer := 40);
-    Port ( dividend : in std_logic_vector(MPWID-1 downto 0);
-           divisor : in std_logic_vector(MPWID-1 downto 0);
-           quotient : out std_logic_vector(MPWID-1 downto 0);
-			  remainder : out std_logic_vector(MPWID-1 downto 0);
-           clk : in std_logic;
-           ds : in std_logic;
-			  reset : in std_logic;
-			  ready: out std_logic);
-end component;
 
 
 
@@ -75,62 +53,17 @@ end component;
 signal localmodulus : std_logic_vector(MPWID-1 downto 0);
 signal localinvop : std_logic_vector(MPWID-1 downto 0);
 signal localx0 : std_logic_vector(MPWID-1 downto 0);
+signal localx0mult : std_logic_vector(2*MPWID-1 downto 0);
 signal localsavex0 : std_logic_vector(MPWID-1 downto 0);
 signal localx1 : std_logic_vector(MPWID-1 downto 0);
 signal localquotient : std_logic_vector(MPWID-1 downto 0);
-
+signal tmpmodulus : std_logic_vector(MPWID-1 downto 0);
 signal step : std_logic_vector(3 downto 0);
 signal first : std_logic;
 
 
---local signals for division
-signal tmpresult : std_logic_vector(MPWID-1 downto 0);
-signal tmpquotient : std_logic_vector(MPWID-1 downto 0);
-signal tmpremainder : std_logic_vector(MPWID-1 downto 0);
-signal tmpdividend : std_logic_vector(MPWID-1 downto 0);
-signal tmpdivisor : std_logic_vector(MPWID-1 downto 0);
-signal divrdy : std_logic;
-signal divgo : std_logic;
-
---local signals for modular multiplication
-signal tmpmpand : std_logic_vector(MPWID-1 downto 0);
-signal tmpmplier : std_logic_vector(MPWID-1 downto 0);
-signal tmpmodulus : std_logic_vector(MPWID-1 downto 0);
-signal tmpproduct : std_logic_vector(MPWID-1 downto 0);
-signal multgo : std_logic;
-signal multrdy : std_logic;
-
 
 begin
-	
-	
-
-	-- Modular multiplier to produce products
-	modmultiply: modmult
-	Generic Map(MPWID => MPWID)
-	Port Map(mpand => tmpmpand,
-				mplier => tmpmplier,
-				modulus => tmpmodulus,
-				product => tmpproduct,
-				clk => clk,
-				ds => multgo,
-				reset => reset,
-				ready => multrdy);
-				
-	-- Modular multiplier to produce products
-   div: divunsigned 
-	Generic Map (MPWID => MPWID)
-	PORT MAP(dividend => tmpdividend,
-				divisor => tmpdivisor,
-				quotient => tmpquotient,
-				remainder => tmpremainder,
-				clk => clk,
-				ds => divgo,
-				reset => reset,
-				ready => divrdy
-				);
-				
-	result <= localx1;
 	
 	modinv : process(clk, reset, ds, first) is
 	begin
@@ -140,50 +73,42 @@ begin
 		elsif rising_edge(clk) then
 			if first = '1' then
 				if ds = '1' then
+					ready <= '0';
 					localmodulus <= modulus;
 					localinvop <= invop;
 					localx0 <= (others => '0');
 					localx1(MPWID-1 downto 1) <= (others => '0');
 					localx1(0) <= '1';
 					first <= '0';
-					divrdy <= '0';
-					multrdy <= '0';
+					result <= (others => '0');
 					step <= "0000";
 				end if;
-			elsif localinvop > "1" then
+			elsif signed(localinvop) <= 1 and step = "0000" then
+				step <= "1111";
+				if signed(localx1) < 0 then
+					result <= std_logic_vector(signed(localx1) + signed(modulus));
+				else
+					result <= localx1;
+				end if;
+				ready <= '1';
+				first <= '1';
+			else
 				if step = "0000" then
-					--tmpdividend <= localinvop;
-					--tmpdivisor <= localmodulus;
-					--divgo <= '1';
-					--if divrdy = '1' then
-					--	localquotient <= tmpquotient;
-					--	divgo <= '0';
-					--	step <= "0001";
-					--end if;
-					localquotient <= std_logic_vector(unsigned(localinvop) / unsigned(localmodulus));
+					localquotient <= std_logic_vector(signed(localinvop) / signed(localmodulus));
+					tmpmodulus <= localmodulus;
 					step <= "0001";
 				elsif step = "0001" then	
-					tmpmpand <= localinvop;
-					tmpmplier(0) <= '1';
-					tmpmplier(MPWID-1 downto 1) <= (others => '0');
-					tmpmodulus <= localmodulus;
-					multgo <= '1';
-					if multrdy = '1' then
-						localinvop <= localmodulus;
-						localmodulus <= tmpproduct;
-						multgo <= '0';
-						step <= "0010";
-					end if;
+					localmodulus <= std_logic_vector(signed(localinvop) mod signed(localmodulus));
+					step <= "0010";	
 				elsif step = "0010" then
+					localinvop <= tmpmodulus;
 					localsavex0 <= localx0;
-					localx0 <= std_logic_vector(signed (signed(localx1) - (signed(localquotient) * signed(localx0))));
+					localx0mult <= std_logic_vector(signed(localx1) - (signed(localquotient) * signed(localx0)));
+					step <= "0011";
+				elsif step = "0011" then
+					localx0 <= localx0mult(MPWID-1 downto 0);
 					localx1 <= localsavex0;
 					step <= "0000";
-				else
-					if signed(localx1) < 0 then
-						localx1 <= localx1 + modulus;
-					end if;
-					ready <= '1';
 				end if;
 			end if;
 		end if;
