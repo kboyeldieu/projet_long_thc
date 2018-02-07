@@ -10,34 +10,33 @@ entity RSA_CRT is
 			 clk: in std_logic;
 			 ds: in std_logic;
 			 reset: in std_logic;
-			 ready: out std_logic
-			 );
+			 ready: out std_logic);
 end RSA_CRT;
 
 architecture Behavioral of RSA_CRT is
 
 component modmult is
 	Generic (MPWID: integer);
-    Port ( mpand : in std_logic_vector(MPWID-1 downto 0);
-           mplier : in std_logic_vector(MPWID-1 downto 0);
-           modulus : in std_logic_vector(MPWID-1 downto 0);
-           product : out std_logic_vector(MPWID-1 downto 0);
-           clk : in std_logic;
-           ds : in std_logic;
-			  reset : in std_logic;
-			  ready: out std_logic);
+    Port (mpand : in std_logic_vector(MPWID-1 downto 0);
+          mplier : in std_logic_vector(MPWID-1 downto 0);
+          modulus : in std_logic_vector(MPWID-1 downto 0);
+          product : out std_logic_vector(MPWID-1 downto 0);
+          clk : in std_logic;
+          ds : in std_logic;
+			 reset : in std_logic;
+			 ready: out std_logic);
 end component;
 
 component exponentiation is
 	Generic (KEYSIZE: integer := 40);
-    Port ( inData: in std_logic_vector(KEYSIZE-1 downto 0);
-			  inExp: in std_logic_vector(KEYSIZE-1 downto 0); 
-			  inMod: in std_logic_vector(KEYSIZE-1 downto 0);
-			  exponentiation: out std_logic_vector(KEYSIZE-1 downto 0);
-			  clk: in std_logic;
-			  ds: in std_logic;
-			  reset: in std_logic;
-			  ready: out std_logic);
+    Port (inData: in std_logic_vector(KEYSIZE-1 downto 0);
+			 inExp: in std_logic_vector(KEYSIZE-1 downto 0); 
+			 inMod: in std_logic_vector(KEYSIZE-1 downto 0);
+			 exponentiation: out std_logic_vector(KEYSIZE-1 downto 0);
+			 clk: in std_logic;
+			 ds: in std_logic;
+			 reset: in std_logic;
+			 ready: out std_logic);
 end component;
 
 signal modin: std_logic_vector(KEYSIZE-1 downto 0);	-- value to get the modulus
@@ -77,10 +76,10 @@ signal d: std_logic_vector(KEYSIZE-1 downto 0); -- private key
 begin
 	
 	-- initialize constants
-	c <= x"03273923ff";
-	p <= x"0ef03f7fff";
-	q <= x"0ef03f7fff";
-	d <= x"0ef03f7fff";
+	c <= x"0000123456"; 
+	p <= x"000000258d"; -- 9613
+	q <= x"0000002405"; -- 9221
+	d <= x"1111111111";
 	one <= x"0000000001";
 	ready <= done;
 	
@@ -220,17 +219,18 @@ begin
 			elsif step = 6 then
 			-- compute plaintext = sq + q(iq(sp - sq) mod p)
 				if modrdy = '1' then
-					tmp_large <= sq + q * expout;
+					tmp_large <= sq + q * expout; -- tmp_large contains sq + q(iq(sp - sq) mod p) but on KEYSIZE*2 bits
 					plaintext <= tmp_large(KEYSIZE-1 downto 0);
 					done <= '1';
 					modgo <= '0';
 				else
 					modmod <= p;
-					tmp_large <= iq * (sp - sq);
+					tmp_large <= iq * (sp - sq); -- the multiplication is on KEYSIZE*2 bits
 					modin <= tmp_large(KEYSIZE-1 downto 0);
 					modgo <= '1';
 				end if;
-
+			elsif step > 6 then
+			
 			end if;
 				
 		end if;
