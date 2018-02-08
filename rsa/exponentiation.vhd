@@ -79,7 +79,6 @@ signal done: std_logic;	-- signal to indicate encryption complete
 
 begin
 
-	ready <= done;
 	bothrdy <= multrdy and sqrrdy;
 	
 	-- Modular multiplier to produce products
@@ -114,8 +113,10 @@ begin
 		if reset = '1' then
 			count <= (others => '0');
 			done <= '1';
+			ready <= '0';
 		elsif rising_edge(clk) then
 			if done = '1' then
+				ready <= '0';
 				if ds = '1' then
 -- first time through
 					count <= '0' & inExp(KEYSIZE-1 downto 1);
@@ -126,6 +127,7 @@ begin
 				if bothrdy = '1' and multgo = '0' then
 					exponentiation <= tempout;		-- set output value
 					done <= '1';
+					ready <= '1';
 				end if;
 			elsif bothrdy = '1' then
 				if multgo = '0' then
