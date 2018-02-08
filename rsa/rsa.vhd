@@ -116,7 +116,7 @@ signal n: std_logic_vector(KEYSIZE-1 downto 0); -- modulus
 
 begin
 
-	c <= x"0000123456";
+	c <= x"0000000056";
 	d <= x"1111111111";
 	n <= x"0005488fc1";
 	ready <= done;
