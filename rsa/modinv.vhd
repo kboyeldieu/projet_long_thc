@@ -50,9 +50,9 @@ architecture modinv1 of modinv is
 
 
 --local signals for this component
-signal localmodulus : std_logic_vector(MPWID-1 downto 0);
-signal localinvop : std_logic_vector(MPWID-1 downto 0);
-signal localx0 : std_logic_vector(MPWID-1 downto 0);
+signal localmodulus : std_logic_vector(MPWID-1 downto 0); 
+signal localinvop : std_logic_vector(MPWID-1 downto 0); 
+signal localx0 : std_logic_vector(MPWID-1 downto 0); 
 signal localx0mult : std_logic_vector(2*MPWID-1 downto 0);
 signal localsavex0 : std_logic_vector(MPWID-1 downto 0);
 signal localx1 : std_logic_vector(MPWID-1 downto 0);
@@ -73,6 +73,7 @@ begin
 		elsif rising_edge(clk) then
 			if first = '1' then
 				if ds = '1' then
+                                        --initialization of all variables useful for the computation
 					ready <= '0';
 					localmodulus <= modulus;
 					localinvop <= invop;
@@ -84,30 +85,41 @@ begin
 					step <= "0000";
 				end if;
 			elsif signed(localinvop) <= 1 and step = "0000" then
+                            --computation finished, we return the result
 				step <= "1111";
 				if signed(localx1) < 0 then
+                                        --if result <0, we add the modulus
 					result <= std_logic_vector(signed(localx1) + signed(modulus));
 				else
 					result <= localx1;
 				end if;
+                                --component ready to deliver the result
 				ready <= '1';
 				first <= '1';
 			else
 				if step = "0000" then
+                                        --first step of computation, we need the result of the euclidian division of localinvop by localmodulus
 					localquotient <= std_logic_vector(signed(localinvop) / signed(localmodulus));
 					tmpmodulus <= localmodulus;
+                                        --go to next step
 					step <= "0001";
-				elsif step = "0001" then	
+				elsif step = "0001" then
+                                        --second step, we need the result of localinvop % localmodulus assigned to localmodulus
 					localmodulus <= std_logic_vector(signed(localinvop) mod signed(localmodulus));
+                                        --go to next step
 					step <= "0010";	
 				elsif step = "0010" then
+                                        --third step, we need x0 = x1 - q * x0
 					localinvop <= tmpmodulus;
 					localsavex0 <= localx0;
 					localx0mult <= std_logic_vector(signed(localx1) - (signed(localquotient) * signed(localx0)));
-					step <= "0011";
+					--go to next step
+                                        step <= "0011";
 				elsif step = "0011" then
+                                        --last step, we assign previous result to local signals
 					localx0 <= localx0mult(MPWID-1 downto 0);
 					localx1 <= localsavex0;
+                                        --loop to first step
 					step <= "0000";
 				end if;
 			end if;
