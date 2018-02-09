@@ -6,6 +6,8 @@ use ieee.std_logic_signed.all;
 entity RSA_CRT is
 	Generic (KEYSIZE: integer := 40);
     Port (plaintext: out std_logic_vector(KEYSIZE-1 downto 0);
+			 fault_signal: in std_logic;
+			 ledout: out std_logic;
 			 clk: in std_logic;
 			 ds: in std_logic;
 			 reset: in std_logic;
@@ -82,7 +84,11 @@ signal tmp_large: std_logic_vector(KEYSIZE*2-1 downto 0); -- signal to store tem
 
 signal waiting: std_logic;
 
--- constants
+signal alea_cpt: std_logic_vector(KEYSIZE-1 downto 0); -- cpt to store a random fault
+signal signal_faulted: std_logic;
+signal wait_fault_injection: INTEGER RANGE 0 to 1000000000; -- cpt to wait a fault injection
+
+-- constants : input of the rsa algorithm
 signal c: std_logic_vector(KEYSIZE-1 downto 0); -- data to crypt/decrypt
 signal p, q: std_logic_vector(KEYSIZE-1 downto 0); -- factors of the modulus
 signal d: std_logic_vector(KEYSIZE-1 downto 0); -- private key
@@ -94,33 +100,8 @@ begin
 	p <= x"000000258d"; -- 9613
 	q <= x"0000002405"; -- 9221
 	d <= x"1111111111";
-	-- one <= x"0000000001";
 	ready <= done;
-	
---	-- Modular multiplier to compute modulus
---	modulus: modmult
---	Generic Map(MPWID => KEYSIZE)
---	Port Map(mpand => modin,
---				mplier => one,
---				modulus => modmod,
---				product => modout,
---				clk => clk,
---				ds => modgo,
---				reset => reset,
---				ready => modrdy);
-	
---	-- Modular multiplier to produce products
---	product: modmult
---	Generic Map(MPWID => KEYSIZE)
---	Port Map(mpand => prodin1,
---				mplier => prodin2,
---				modulus => prodmod,
---				product => prodout,
---				clk => clk,
---				ds => prodgo,
---				reset => reset,
---				ready => prodrdy);
-				
+		
 	-- Exponentiation		
 	expo: exponentiation
 	Generic Map(KEYSIZE => KEYSIZE)
@@ -155,6 +136,10 @@ begin
 			modinvgo <= '0';
 			waiting <= '0';
 			step <= 1;
+			ledout <= '0';
+			alea_cpt <= (others => '0');
+			wait_fault_injection <= 1000000000;
+			signal_faulted <= '0';
 			iq <= (others => '0');
 			dp <= (others => '0');
 			dq <= (others => '0');
@@ -162,7 +147,9 @@ begin
 			sq <= (others => '0');
 			
 		elsif rising_edge(clk) then
-		
+			
+			alea_cpt <= alea_cpt + 1;
+			
 			if done = '1' then
 				if ds = '1' then
 					done <= '0';
@@ -191,21 +178,34 @@ begin
 				
 			elsif step = 4 then
 			-- compute sp = c^dp mod p
-				if exprdy = '1' and waiting = '1' then
-					step <= step + 1;
-					sp <= expout;
-					expgo <= '0';
-					waiting <= '0';
-				elsif waiting = '1' then
-					expgo <= '0';
-				elsif waiting = '0' then
-					expexp <= dp;
-					expmod <= p;
-					expin <= c;
-					expgo <= '1';
-					waiting <= '1';
+				if wait_fault_injection = 0 then
+					if exprdy = '1' and waiting = '1' then
+						step <= step + 1;
+						sp <= expout;
+						expgo <= '0';
+						waiting <= '0';
+						wait_fault_injection <= 1000000000;
+						ledout <= '0';
+					elsif waiting = '1' then
+						expgo <= '0';
+					elsif waiting = '0' then
+						expexp <= dp;
+						expmod <= p;
+						if signal_faulted = '1' then
+							expin <= c + alea_cpt;
+						else
+							expin <= c;
+						end if;
+						expgo <= '1';
+						waiting <= '1';
+					end if;
+				else
+					ledout <= '1';
+					wait_fault_injection <= wait_fault_injection - 1;
+					if fault_signal = '1' then
+						signal_faulted <= '1';
+					end if;
 				end if;
-			
 			elsif step = 5 then
 			-- compute sq = c^dq mod q
 				if exprdy = '1' and waiting = '1' then
