@@ -42,6 +42,8 @@ ARCHITECTURE behavior OF rsacypher_crttest IS
     COMPONENT RSA_CRT
     PORT(
          plaintext : OUT  std_logic_vector(39 downto 0);
+			fault_signal: IN std_logic;
+			ledout: OUT std_logic;
          clk : IN  std_logic;
          ds : IN  std_logic;
          reset : IN  std_logic;
@@ -54,11 +56,13 @@ ARCHITECTURE behavior OF rsacypher_crttest IS
    signal clk : std_logic := '0';
    signal ds : std_logic := '0';
    signal reset : std_logic := '0';
+	signal fault_signal: std_logic := '0';
 
  	--Outputs
    signal plaintext : std_logic_vector(39 downto 0);
    signal ready : std_logic;
-
+	signal ledout: std_logic;
+	
    -- Clock period definitions
    constant clk_period : time := 10 ns;
  
@@ -67,33 +71,63 @@ BEGIN
 	-- Instantiate the Unit Under Test (UUT)
    uut: RSA_CRT PORT MAP (
           plaintext => plaintext,
+			 fault_signal => fault_signal,
+			 ledout => ledout,
           clk => clk,
           ds => ds,
           reset => reset,
           ready => ready
         );
 
-   -- Clock process definitions
-   clk_process :process
-   begin
-		clk <= '0';
-		wait for clk_period/2;
-		clk <= '1';
-		wait for clk_period/2;
-   end process;
- 
+-- *** Test Bench - User Defined Section ***
+	TB: PROCESS
+	BEGIN
+		wait for 120ns;
+		reset <= '1';
+		ds <= '0';
+		wait for 20ns;
+		wait until clk = '0';
+		reset <= '0';
+		wait until clk = '1';
+		wait until clk = '0';
+		wait until clk = '1';
+		wait for 2ns;
+		ds <= '1';
+		wait until ready = '0';
+		ds <= '0';
+		wait until ready = '1';
+		
+		wait for 120ns;
+		reset <= '1';
+		ds <= '0';
+		wait for 20ns;
+		wait until clk = '0';
+		reset <= '0';
+		wait until clk = '1';
+		wait until clk = '0';
+		wait until clk = '1';
+		wait for 2ns;
+		ds <= '1';
+		wait until ready = '0';
+		ds <= '0';
+		wait for 3000ns;
+		fault_signal <= '1';
+		wait for 120ns;
+		fault_signal <= '0';
+		wait until ready = '1';
+		wait;
+	END PROCESS;
 
-   -- Stimulus process
-   stim_proc: process
-   begin		
-      -- hold reset state for 100 ns.
-      wait for 100 ns;	
 
-      wait for clk_period*10;
-
-      -- insert stimulus here 
-
-      wait;
-   end process;
+   ClkGen : PROCESS
+   BEGIN
+      wait for 5300ps; -- will wait forever
+		if clk = '1' then
+			clk <= '0';
+		else
+			clk <= '1';
+		end if;
+   END PROCESS;
+-- *** End Test Bench - User Defined Section ***
 
 END;
