@@ -1,22 +1,3 @@
-----------------------------------------------------------------------------------
--- Company: 
--- Engineer: 
--- 
--- Create Date:    10:08:54 02/06/2018 
--- Design Name: 
--- Module Name:    modinv - Behavioral 
--- Project Name: 
--- Target Devices: 
--- Tool versions: 
--- Description: 
---
--- Dependencies: 
---
--- Revision: 
--- Revision 0.01 - File Created
--- Additional Comments: 
---
-----------------------------------------------------------------------------------
 library IEEE;
 use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
@@ -34,13 +15,12 @@ use ieee.std_logic_signed.all;
 entity modinv is
 	Generic(MPWID: integer := 40);
 	Port( invop : in std_logic_vector(MPWID-1 downto 0);
-			modulus : in std_logic_vector(MPWID-1 downto 0);
-			result : out std_logic_vector(MPWID-1 downto 0);
-			clk : in std_logic;
-			ds : in std_logic;
-			reset : in std_logic;
-			ready : out std_logic
-			);
+	      modulus : in std_logic_vector(MPWID-1 downto 0);
+	      result : out std_logic_vector(MPWID-1 downto 0);
+	      clk : in std_logic;
+	      ds : in std_logic;
+	      reset : in std_logic;
+	      ready : out std_logic);
 end modinv;
 
 architecture modinv1 of modinv is
