@@ -35,7 +35,7 @@ entity diviseur_horloge is
 	 Generic ( facteur : INTEGER := 8 );
     Port ( reset : in  STD_LOGIC;
            clk : in  STD_LOGIC;
-			  new_clk : out STD_LOGIC);
+	   new_clk : out STD_LOGIC);
 			  
 end diviseur_horloge;
 
@@ -48,7 +48,7 @@ begin
 	variable cpt_aux : INTEGER;
 	begin
 		
-		if (reset = '0') then
+		if (reset = '1') then
 			cpt_aux := 0;
 		elsif (rising_edge(clk)) then 			
 			if (cpt_aux = facteur-1) then
