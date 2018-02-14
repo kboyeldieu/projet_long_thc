@@ -7,7 +7,7 @@ entity Spartan3RSA is
   port ( btnC : in std_logic;
          btnU : in std_logic;
          clk : in std_logic;
-         led : out std_logic;
+         led : out std_logic);
 end Spartan3RSA;
 
 architecture synthesis of Spartan3RSA is
