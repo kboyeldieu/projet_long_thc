@@ -1,3 +1,4 @@
+library IEE;
 use IEEE.std_logic_arith.all;
 use IEEE.std_logic_unsigned.all;
 
