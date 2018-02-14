@@ -14,7 +14,7 @@ component RSA_CRT is
   Generic (KEYSIZE: integer := 40);
   port ( plaintext: out std_logic_vector(KEYSIZE-1 downto 0);
          fault_signal : in std_logic;
-         ledout : out std_logic
+         ledout : out std_logic;
          clk: in std_logic;
          ds: in std_logic;
          reset: in std_logic;
