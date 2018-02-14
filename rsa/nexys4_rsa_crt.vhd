@@ -8,7 +8,7 @@ entity Nexys4RSACRT is
          led : out std_logic_vector(1 downto 0));
 end Nexys4RSACRT;
 
-architecture synthesis of Spartan3RSA is
+architecture synthesis of Nexys4RSACRT is
 
 component RSA_CRT is
   Generic (KEYSIZE: integer := 40);
