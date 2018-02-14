@@ -5,6 +5,7 @@ use IEEE.std_logic_unsigned.all;
 entity Nexys4RSACRT is
   port ( btnC : in std_logic;
          btnU : in std_logic;
+         btnL : in std_logic;
          clk : in std_logic;
          led : out std_logic_vector(1 downto 0));
 end Nexys4RSACRT;
