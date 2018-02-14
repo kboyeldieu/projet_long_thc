@@ -3,14 +3,14 @@ use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
 use IEEE.std_logic_unsigned.all;
 
-entity Nexys4RSA is
+entity Spartan3RSA is
   port ( btnC : in std_logic;
          btnU : in std_logic;
          clk : in std_logic;
          led : out std_logic;
-end Nexys4RSA;
+end Spartan3RSA;
 
-architecture synthesis of Nexys4RSA is
+architecture synthesis of Spartan3RSA is
 
 component RSACypher is
   Generic (KEYSIZE: integer := 40);
