@@ -3,15 +3,15 @@ use IEEE.std_logic_1164.all;
 use IEEE.std_logic_arith.all;
 use IEEE.std_logic_unsigned.all;
 
-entity Nexys4RSACRT is
+entity Spartan3RSACRT is
   port ( btnC : in std_logic;
          btnU : in std_logic;
          btnL : in std_logic;
          clk : in std_logic;
          led : out std_logic_vector(1 downto 0));
-end Nexys4RSACRT;
+end Spartan3RSACRT;
 
-architecture synthesis of Nexys4RSACRT is
+architecture synthesis of Spartan3RSACRT is
 
 component RSA_CRT is
   Generic (KEYSIZE: integer := 40);
@@ -24,10 +24,23 @@ component RSA_CRT is
          ready: out std_logic);
 end component;
 
-signal plaintext: std_logic_vector(39 downto 0);
+component uart_transmitter is
+	generic(DATA_SIZE: integer := 40);
+	port(clock: in std_logic;
+		  txd: out std_logic;
+		  reset: in std_logic;
+		  ds: in std_logic;
+		  data_to_send: in std_logic_vector(DATA_SIZE-1 downto 0));
+end component;
 
+signal plaintext: std_logic_vector(39 downto 0);
+signal rsa_ready: std_logic;
+signal txd_local: std_logic;
 begin
  
+  led(0) <= rsa_ready;
+  txd_local <= txd;
+  
   rsa: RSA_CRT 
   PORT MAP( plaintext => plaintext,
             fault_signal => btnL,
@@ -35,6 +48,13 @@ begin
             clk => clk,
             ds => btnU,
             reset => btnC,
-            ready => led(0));
+            ready => rsa_ready);
 
+	uart: uart_transmitter
+	PORT MAP( clock => clk,
+		       txd => txd_local,
+				 reset => btnC,
+				 ds => rsa_ready,
+				 data_to_send => plaintext);
+				 
 end synthesis;
