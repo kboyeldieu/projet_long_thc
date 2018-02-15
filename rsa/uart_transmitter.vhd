@@ -5,10 +5,10 @@ use IEEE.NUMERIC_STD.ALL;
 entity uart_transmitter is
 	generic(DATA_SIZE: integer := 40);
 	port(clock: in std_logic;
-		  txd: out std_logic);
-		  --reset: in std_logic);
-		  ---ds: in std_logic);
-		  --data_to_send: in std_logic_vector(DATA_SIZE-1 downto 0));
+		  txd: out std_logic;
+		  reset: in std_logic;
+		  ds: in std_logic;
+		  data_to_send: in std_logic_vector(DATA_SIZE-1 downto 0));
 end uart_transmitter;
 
 architecture Behavioral of uart_transmitter is
@@ -17,8 +17,8 @@ constant system_speed: natural := 50e6;
 signal baudrate_clock, second_clock, old_second_clock: std_logic;
 signal bit_counter: unsigned(3 downto 0) := x"9";
 signal shift_register: unsigned(9 downto 0) := (others => '0');
-signal char_index: natural range 0 to DATA_SIZE-1 := 0;
-signal data_to_send: std_logic_vector(DATA_SIZE-1 downto 0)	:= x"1234567890";
+signal char_index: natural range 0 to DATA_SIZE-1+48 := 0;
+signal data_to_send_local: std_logic_vector(DATA_SIZE-1+48 downto 0);
 
 component clock_generator 
 	generic(clock_in_speed, clock_out_speed: integer);
@@ -39,20 +39,18 @@ begin
 		clock_in => clock,
 		clock_out => second_clock);
 
-	
 	send: process(baudrate_clock)
-	
 	begin
 		
-		
-		--if reset = '1' then
-		--	bit_counter <= x"9";
-		--	char_index <= 0;
-		--else
-			---if ds = '1' then
-			--	bit_counter <= x"9";
-			--	char_index <= 0;
-			--else
+		if reset = '1' then
+	      bit_counter <= x"9";
+		   char_index <= 0;
+		else
+			if ds = '1' then
+			   bit_counter <= x"9";
+			   char_index <= 0;
+				data_to_send_local <= data_to_send & x"ffffffffffff";
+			else
 				if baudrate_clock'event and baudrate_clock = '1' then
 					txd <= '1';
 					if bit_counter = 9 then
@@ -70,8 +68,8 @@ begin
 						shift_register <= shift_register ror 1;
 					end if;
 				end if;
-			--end if;
-		--end if;
+			end if;
+		end if;
 	end process;
 
 end Behavioral;
