@@ -63,6 +63,7 @@ begin
 	begin
 	if reset = '1' then
 		first <= '1';
+		ready <= '0';
 	elsif rising_edge(clk) then
 		if counter = 0 then
 			ready <= '1';
@@ -75,6 +76,7 @@ begin
 				first <= '0';
 				step <= '0';
 				counter <= MPWID-1;
+				ready <= '0';
 			end if;
 		elsif step = '0' then
 			tmpremainder <= tmpremainder(MPWID-2 downto 0) & tmpdividend(0);
@@ -84,9 +86,9 @@ begin
 			if tmpremainder >= dividend then
 				tmpremainder <= tmpremainder - dividend;
 				tmpquotient(counter) <= '1';
-				counter <= counter - 1;
-				step <= '0';
 			end if;
+			counter <= counter - 1;
+			step <= '0';
 		end if;
 	end if;
 		
