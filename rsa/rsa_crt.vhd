@@ -60,14 +60,20 @@ signal modinvin: std_logic_vector(KEYSIZE-1 downto 0);    -- value to get the mo
 signal modinvout: std_logic_vector(KEYSIZE-1 downto 0);   -- result of modular inverse
 signal modinvmod: std_logic_vector(KEYSIZE-1 downto 0);   -- modulus of modular inverse
 
-signal modinvrdy, exprdy, modrdy: std_logic;                      -- signals to indicate completion of modular inverse, exponentiation
-signal modinvgo, expgo, modgo: std_logic;                        -- signals to trigger start of modular inverse, exponentiation
+signal modinvrdy, exprdy, modrdy, modrdydouble: std_logic;                      -- signals to indicate completion of modular inverse, exponentiation
+signal modinvgo, expgo, modgo, modgodouble: std_logic;                        -- signals to trigger start of modular inverse, exponentiation
 signal done: std_logic;                                   -- signal to indicate encryption complete
 
 signal modin: std_logic_vector(KEYSIZE-1 downto 0);
 signal modout: std_logic_vector(KEYSIZE-1 downto 0);  
 signal modmod: std_logic_vector(KEYSIZE-1 downto 0);  
+
+signal modindouble: std_logic_vector(KEYSIZE*2-1 downto 0);
+signal modoutdouble: std_logic_vector(KEYSIZE*2-1 downto 0);  
+signal modmoddouble: std_logic_vector(KEYSIZE*2-1 downto 0);  
+
 signal unused: std_logic_vector(KEYSIZE-1 downto 0);
+signal unuseddouble: std_logic_vector(KEYSIZE*2-1 downto 0);
 
 signal step: INTEGER RANGE 0 to 9;                        -- signal to track the current operation to perform
 
@@ -128,6 +134,17 @@ begin
              ds => modgo,
              reset => reset,
              ready => modrdy);
+		
+	 modulo80: divunsigned
+		Generic Map(MPWID => KEYSIZE*2)
+		Port Map ( dividend => modindouble,
+             divisor => modmoddouble,
+             quotient => unuseddouble,
+             remainder => modoutdouble,
+             clk => clk,
+             ds => modgodouble,
+             reset => reset,
+             ready => modrdydouble);
 				 
     crypto: process (clk, reset, done, ds) is
     begin
@@ -245,13 +262,29 @@ begin
                 end if;
             
             elsif step = 6 then
-            -- compute plaintext = sq + q(iq(sp - sq) mod p)
-                tmp_large <= std_logic_vector(unsigned(sq) + unsigned(q) * (unsigned(iq) * (unsigned(sp) - unsigned(sq)) mod unsigned(p)));
-                step <= step + 1;
-            
+            -- compute plaintext = iq(sp - sq) mod p
+					 if modgodouble = '1' and modrdydouble = '1' then
+					    step <= step + 1;
+						 tmp_large <= modoutdouble;
+						 modgodouble <= '0';
+						 step <= step + 1;
+					 else 
+						 modmoddouble(KEYSIZE*2-1 downto KEYSIZE) <= (others => '0');
+						 modmoddouble(KEYSIZE-1 downto 0) <= p; 
+						 modindouble <= std_logic_vector(unsigned(iq) * (unsigned(sp) - unsigned(sq)));
+						 modgodouble <= '1';
+					 end if;
+				
+				
             elsif step = 7 then
-                plaintext <= tmp_large(KEYSIZE-1 downto 0);
-                done <= '1';
+				    -- compute plaintext = sq + q(iq(sp - sq) mod p)
+                tmp_large <= q * tmp_large(KEYSIZE-1 downto 0);
+					 step <= step + 1;
+					 
+			   elsif step = 8 then
+					 plaintext <= sq + tmp_large(KEYSIZE-1 downto 0);
+					 done <= '1';
+
             end if;
                 
         end if;
