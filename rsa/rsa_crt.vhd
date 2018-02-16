@@ -39,6 +39,17 @@ component modinv is
           ready : out std_logic);
 end component;
 
+component divunsigned is
+Generic (MPWID: integer);
+    Port ( dividend : in std_logic_vector(MPWID-1 downto 0);
+           divisor : in std_logic_vector(MPWID-1 downto 0);
+           quotient : out std_logic_vector(MPWID-1 downto 0);
+			  remainder : out std_logic_vector(MPWID-1 downto 0);
+           clk : in std_logic;
+           ds : in std_logic;
+			  reset : in std_logic;
+			  ready: out std_logic);
+end component;
 
 signal expin: std_logic_vector(KEYSIZE-1 downto 0);          -- value to get the exponentiation
 signal expout: std_logic_vector(KEYSIZE-1 downto 0);      -- result of exponentiation
@@ -49,11 +60,16 @@ signal modinvin: std_logic_vector(KEYSIZE-1 downto 0);    -- value to get the mo
 signal modinvout: std_logic_vector(KEYSIZE-1 downto 0);   -- result of modular inverse
 signal modinvmod: std_logic_vector(KEYSIZE-1 downto 0);   -- modulus of modular inverse
 
-signal modinvrdy, exprdy: std_logic;                      -- signals to indicate completion of modular inverse, exponentiation
-signal modinvgo, expgo: std_logic;                        -- signals to trigger start of modular inverse, exponentiation
+signal modinvrdy, exprdy, modrdy: std_logic;                      -- signals to indicate completion of modular inverse, exponentiation
+signal modinvgo, expgo, modgo: std_logic;                        -- signals to trigger start of modular inverse, exponentiation
 signal done: std_logic;                                   -- signal to indicate encryption complete
 
-signal step: INTEGER RANGE 0 to 7;                        -- signal to track the current operation to perform
+signal modin: std_logic_vector(KEYSIZE-1 downto 0);
+signal modout: std_logic_vector(KEYSIZE-1 downto 0);  
+signal modmod: std_logic_vector(KEYSIZE-1 downto 0);  
+signal unused: std_logic_vector(KEYSIZE-1 downto 0);
+
+signal step: INTEGER RANGE 0 to 9;                        -- signal to track the current operation to perform
 
 signal iq, dp, dq, sp, sq: std_logic_vector(KEYSIZE-1 downto 0); -- temporal results 
 signal tmp_large: std_logic_vector(KEYSIZE*2-1 downto 0);        -- signal to store temporal large products
@@ -61,7 +77,7 @@ signal tmp_large: std_logic_vector(KEYSIZE*2-1 downto 0);        -- signal to st
 signal waiting: std_logic;
 
 signal alea_cpt: std_logic_vector(KEYSIZE-1 downto 0);      -- cpt to store a random fault
-signal wait_fault_injection: INTEGER RANGE 0 to 1000000000; -- cpt to wait a fault injection
+signal wait_fault_injection: INTEGER RANGE 0 to 1000; -- cpt to wait a fault injection
 signal signal_faulted: std_logic;
 
 -- constants : input of the rsa algorithm
@@ -100,7 +116,19 @@ begin
                   ds => modinvgo,
                   reset => reset,
                   ready => modinvrdy);
-                
+    
+
+	 modulo: divunsigned
+		Generic Map(MPWID => KEYSIZE)
+		Port Map ( dividend => modin,
+             divisor => modmod,
+             quotient => unused,
+             remainder => modout,
+             clk => clk,
+             ds => modgo,
+             reset => reset,
+             ready => modrdy);
+				 
     crypto: process (clk, reset, done, ds) is
     begin
         
@@ -108,11 +136,12 @@ begin
             done <= '1';
             expgo <= '0';
             modinvgo <= '0';
+				modgo <= '0';
             waiting <= '0';
             step <= 1;
             ledout <= '0';
             alea_cpt <= (others => '0');
-            wait_fault_injection <= 1000000000;
+            wait_fault_injection <= 10;
             signal_faulted <= '0';
             iq <= (others => '0');
             dp <= (others => '0');
@@ -131,13 +160,29 @@ begin
                 end if;
                 
             elsif step = 1 then
-            -- compute dp = d mod (p-1)
-                dp <= std_logic_vector(unsigned(d) mod unsigned(p-1));
-                step <= step + 1;
+            --compute dp = d mod (p-1)
+					 if modgo = '1' and modrdy = '1' then
+					    step <= step + 1;
+						 dp <= modout;
+						 modgo <= '0';
+					 else 
+						 modmod <= p-1;
+						 modin <= d;
+						 modgo <= '1';
+					 end if;
+  
             elsif step = 2 then
             -- compute dq = d mod (q-1)
-                dq <= std_logic_vector(unsigned(d) mod unsigned(q-1));
-                step <= step + 1;
+					 if modgo = '1' and modrdy = '1' then
+					    step <= step + 1;
+						 dq <= modout;
+						 modgo <= '0';
+					 else 
+						 modmod <= q-1;
+						 modin <= d;
+						 modgo <= '1';
+					 end if;
+									 
             elsif step = 3 then
             -- compute iq = q^-1 mod p
                 if modinvrdy = '1' then
@@ -158,7 +203,7 @@ begin
                         sp <= expout;
                         expgo <= '0';
                         waiting <= '0';
-                        wait_fault_injection <= 1000000000;
+                        wait_fault_injection <= 10;
                         ledout <= '0';
                     elsif waiting = '1' then
                         expgo <= '0';
