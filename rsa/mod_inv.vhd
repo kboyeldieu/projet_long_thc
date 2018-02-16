@@ -25,8 +25,29 @@ end modinv;
 
 architecture modinv1 of modinv is
 
+component divunsigned is
+Generic (MPWID: integer := 40);
+    Port ( dividend : in std_logic_vector(MPWID-1 downto 0);
+           divisor : in std_logic_vector(MPWID-1 downto 0);
+           quotient : out std_logic_vector(MPWID-1 downto 0);
+			  remainder : out std_logic_vector(MPWID-1 downto 0);
+           clk : in std_logic;
+           ds : in std_logic;
+			  reset : in std_logic;
+			  ready: out std_logic);
+end component;
 
-
+component modmult is
+    Generic (MPWID: integer := 40);
+    Port ( mpand : in std_logic_vector(MPWID-1 downto 0);
+           mplier : in std_logic_vector(MPWID-1 downto 0);
+           modulus : in std_logic_vector(MPWID-1 downto 0);
+           product : out std_logic_vector(MPWID-1 downto 0);
+           clk : in std_logic;
+           ds : in std_logic;
+           reset : in std_logic;
+           ready : out std_logic);
+end component;
 
 
 --local signals for this component
@@ -42,8 +63,44 @@ signal step : std_logic_vector(3 downto 0);
 signal first : std_logic;
 
 
+--local signals to comunicate with divunsigned
+signal dividend_local : std_logic_vector(MPWID-1 downto 0);
+signal divisor_local : std_logic_vector(MPWID-1 downto 0);
+signal quotient_local: std_logic_vector(MPWID-1 downto 0);
+signal remainder_local : std_logic_vector(MPWID-1 downto 0);
+signal ds_div : std_logic;
+signal ready_div : std_logic;
+signal is_negative : std_logic;
 
+
+--local signals to comunicate with modmult
+signal mpand_local : std_logic_vector(MPWID-1 downto 0);
+signal mplier_local : std_logic_vector(MPWID-1 downto 0);
+signal modulus_local: std_logic_vector(MPWID-1 downto 0);
+signal product_local : std_logic_vector(MPWID-1 downto 0);
+signal ds_mult : std_logic;
+signal ready_mult : std_logic;
 begin
+	div: divunsigned
+	PORT MAP(dividend => dividend_local,
+           divisor => divisor_local,
+           quotient => quotient_local,
+			  remainder => remainder_local,
+           clk  => clk,
+           ds => ds_div,
+			  reset => reset,
+			  ready => ready_div);
+			  
+			  
+	mult : modmult
+	PORT MAP(mpand => mpand_local,
+           mplier => mplier_local,
+           modulus => modulus_local,
+           product => product_local,
+           clk => clk,
+           ds => ds_mult,
+           reset => reset,
+           ready => ready_mult);
 	
 	modinv : process(clk, reset, ds, first) is
 	begin
@@ -78,16 +135,41 @@ begin
 				first <= '1';
 			else
 				if step = "0000" then
-                                        --first step of computation, we need the result of the euclidian division of localinvop by localmodulus
-					localquotient <= std_logic_vector(signed(localinvop) / signed(localmodulus));
-					tmpmodulus <= localmodulus;
-                                        --go to next step
-					step <= "0001";
+            --first step of computation, we need the result of the euclidian division of localinvop by localmodulus
+					
+					if ready_div = '1' then
+						if is_negative = '1' then
+							localquotient <= std_logic_vector(signed(-quotient_local));
+						else
+							localquotient <= quotient_local;
+						end if;
+						tmpmodulus <= localmodulus;
+						ds_div <= '0';
+						step <= "0001";
+					else
+						is_negative <= localinvop(MPWID-1);
+						dividend_local <= std_logic_vector(abs(signed(localinvop)));
+						divisor_local <= localmodulus;
+						ds_div <= '1';
+					end if;
+						
 				elsif step = "0001" then
-                                        --second step, we need the result of localinvop % localmodulus assigned to localmodulus
-					localmodulus <= std_logic_vector(signed(localinvop) mod signed(localmodulus));
-                                        --go to next step
-					step <= "0010";	
+				--second step, we need the result of localinvop % localmodulus assigned to localmodulus
+				
+               if ready_div = '1' then
+						if is_negative = '1' then
+							localmodulus <= localmodulus - remainder_local;
+						else
+							localmodulus <= remainder_local;						
+						end if;
+						ds_div <= '0';
+						step <= "0010"; 
+					else
+						is_negative <= localinvop(MPWID-1);
+						dividend_local <= std_logic_vector(abs(signed(localinvop)));
+						divisor_local <= localmodulus;
+						ds_div <= '1';
+					end if;
 				elsif step = "0010" then
                                         --third step, we need x0 = x1 - q * x0
 					localinvop <= tmpmodulus;
