@@ -7,6 +7,7 @@ entity Spartan3RSACRT is
   port ( btnC : in std_logic;
          btnU : in std_logic;
          btnL : in std_logic;
+			txd : out std_logic;
          clk : in std_logic;
          led : out std_logic_vector(1 downto 0));
 end Spartan3RSACRT;
@@ -35,11 +36,11 @@ end component;
 
 signal plaintext: std_logic_vector(39 downto 0);
 signal rsa_ready: std_logic;
-signal txd_local: std_logic;
+
+
 begin
  
   led(0) <= rsa_ready;
-  txd_local <= txd;
   
   rsa: RSA_CRT 
   PORT MAP( plaintext => plaintext,
@@ -52,8 +53,8 @@ begin
 
 	uart: uart_transmitter
 	PORT MAP( clock => clk,
-		       txd => txd_local,
-				 reset => btnC,
+		       txd => txd,
+				 reset => btnU,
 				 ds => rsa_ready,
 				 data_to_send => plaintext);
 				 
