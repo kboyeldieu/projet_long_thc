@@ -7,8 +7,7 @@ entity uart_transmitter is
 	port(clock: in std_logic;
 		  txd: out std_logic;
 		  reset: in std_logic;
-		  ds: in std_logic;
-		  data_to_send: in std_logic_vector(DATA_SIZE-1 downto 0));
+		  ds: in std_logic);
 end uart_transmitter;
 
 architecture Behavioral of uart_transmitter is
@@ -19,6 +18,8 @@ signal bit_counter: unsigned(3 downto 0) := x"9";
 signal shift_register: unsigned(9 downto 0) := (others => '0');
 signal char_index: natural range 0 to DATA_SIZE-1+48 := 0;
 signal data_to_send_local: std_logic_vector(DATA_SIZE-1+48 downto 0);
+signal first: std_logic;
+signal data_to_send: std_logic_vector(DATA_SIZE-1 downto 0) := x"1234567890";
 
 component clock_generator 
 	generic(clock_in_speed, clock_out_speed: integer);
@@ -27,14 +28,15 @@ component clock_generator
 end component;
 
 begin
-
+	
+	
 	baudrate_generator: clock_generator
 	generic map(clock_in_speed => system_speed, clock_out_speed => 115200)
 	port map(clock_in => clock,
 				clock_out => baudrate_clock);
 
 	second_generator: clock_generator
-	generic map(clock_in_speed => system_speed, clock_out_speed => 1)
+	generic map(clock_in_speed => system_speed, clock_out_speed => 5)
 	port map(
 		clock_in => clock,
 		clock_out => second_clock);
@@ -45,11 +47,13 @@ begin
 		if reset = '1' then
 	      bit_counter <= x"9";
 		   char_index <= 0;
+			first <= '1';
 		else
-			if ds = '1' then
+			if ds = '1' and first = '1' then
 			   bit_counter <= x"9";
 			   char_index <= 0;
 				data_to_send_local <= data_to_send & x"ffffffffffff";
+				first <= '0';
 			else
 				if baudrate_clock'event and baudrate_clock = '1' then
 					txd <= '1';
@@ -58,8 +62,12 @@ begin
 							old_second_clock <= second_clock;
 							if second_clock = '1' then
 								bit_counter <= x"0";
-								shift_register <= b"1" & unsigned(data_to_send(char_index+7 downto char_index)) & b"0";
-								char_index <= char_index + 8;
+								shift_register <= b"1" & unsigned(data_to_send_local(char_index+7 downto char_index)) & b"0";
+								if char_index = DATA_SIZE + 48 - 8 then
+									char_index <= 0;
+								else 
+									char_index <= char_index + 8;
+								end if;
 							end if;
 						end if;
 					else
