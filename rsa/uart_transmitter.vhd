@@ -7,7 +7,8 @@ entity uart_transmitter is
 	port(clock: in std_logic;
 		  txd: out std_logic;
 		  reset: in std_logic;
-		  ds: in std_logic);
+		  ds: in std_logic;
+		  data_to_send: in std_logic_vector(DATA_SIZE-1 downto 0));
 end uart_transmitter;
 
 architecture Behavioral of uart_transmitter is
@@ -19,7 +20,6 @@ signal shift_register: unsigned(9 downto 0) := (others => '0');
 signal char_index: natural range 0 to DATA_SIZE-1+48 := 0;
 signal data_to_send_local: std_logic_vector(DATA_SIZE-1+48 downto 0);
 signal first: std_logic;
-signal data_to_send: std_logic_vector(DATA_SIZE-1 downto 0) := x"1234567890";
 
 component clock_generator 
 	generic(clock_in_speed, clock_out_speed: integer);
@@ -36,12 +36,12 @@ begin
 				clock_out => baudrate_clock);
 
 	second_generator: clock_generator
-	generic map(clock_in_speed => system_speed, clock_out_speed => 5)
+	generic map(clock_in_speed => system_speed, clock_out_speed => 50)
 	port map(
 		clock_in => clock,
 		clock_out => second_clock);
 
-	send: process(baudrate_clock)
+	send: process(baudrate_clock, reset)
 	begin
 		
 		if reset = '1' then
@@ -74,6 +74,9 @@ begin
 						txd <= shift_register(0);
 						bit_counter <= bit_counter + 1;
 						shift_register <= shift_register ror 1;
+						if char_index = 0 and bit_counter = 8 then
+							first <= '1';
+						end if;
 					end if;
 				end if;
 			end if;
