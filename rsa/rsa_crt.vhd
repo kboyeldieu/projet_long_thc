@@ -83,7 +83,7 @@ signal tmp_large: std_logic_vector(KEYSIZE*2-1 downto 0);        -- signal to st
 signal waiting: std_logic;
 
 signal alea_cpt: std_logic_vector(KEYSIZE-1 downto 0);      -- cpt to store a random fault
-signal wait_fault_injection: INTEGER RANGE 0 to 1000; -- cpt to wait a fault injection
+signal wait_fault_injection: INTEGER RANGE 0 to 5e7; -- cpt to wait a fault injection
 signal signal_faulted: std_logic;
 
 -- constants : input of the rsa algorithm
@@ -94,10 +94,10 @@ signal d: std_logic_vector(KEYSIZE-1 downto 0); -- private key
 begin
     
     -- initialize constants
-    c <= x"0000000056"; 
-    p <= x"000000258d"; -- 9613
-    q <= x"0000002405"; -- 9221
-    d <= x"1111111111";
+    c <= x"11111111110000000056"; 
+    p <= x"1111111111000000258d"; -- 9613
+    q <= x"11111111110000002405"; -- 9221
+    d <= x"11111111111111111111";
     ready <= done;
         
     -- Exponentiation        
@@ -158,7 +158,7 @@ begin
             step <= 1;
             ledout <= '0';
             alea_cpt <= (others => '0');
-            wait_fault_injection <= 10;
+            wait_fault_injection <= 5e7;
             signal_faulted <= '0';
             iq <= (others => '0');
             dp <= (others => '0');
@@ -172,8 +172,21 @@ begin
             
             if done = '1' then
                 if ds = '1' then
-                    done <= '0';
-                    step <= 1;
+							expgo <= '0';
+							modinvgo <= '0';
+							modgo <= '0';
+							waiting <= '0';
+							ledout <= '0';
+							alea_cpt <= (others => '0');
+							wait_fault_injection <= 5e7;
+							signal_faulted <= '0';
+							iq <= (others => '0');
+							dp <= (others => '0');
+							dq <= (others => '0');
+							sp <= (others => '0');
+							sq <= (others => '0');
+                     done <= '0';
+                     step <= 1;
                 end if;
                 
             elsif step = 1 then
@@ -220,7 +233,7 @@ begin
                         sp <= expout;
                         expgo <= '0';
                         waiting <= '0';
-                        wait_fault_injection <= 10;
+                        wait_fault_injection <= 5e7;
                         ledout <= '0';
                     elsif waiting = '1' then
                         expgo <= '0';
