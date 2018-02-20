@@ -3,17 +3,8 @@ use IEEE.STD_LOGIC_1164.ALL;
 use IEEE.NUMERIC_STD.ALL;
 use ieee.std_logic_signed.all;
 
--- Uncomment the following library declaration if using
--- arithmetic functions with Signed or Unsigned values
-
-
--- Uncomment the following library declaration if instantiating
--- any Xilinx primitives in this code.
---library UNISIM;
---use UNISIM.VComponents.all;
-
 entity modinv is
-	Generic(MPWID: integer := 40);
+	Generic(MPWID: integer);
 	Port( invop : in std_logic_vector(MPWID-1 downto 0);
 	      modulus : in std_logic_vector(MPWID-1 downto 0);
 	      result : out std_logic_vector(MPWID-1 downto 0);
@@ -26,7 +17,7 @@ end modinv;
 architecture modinv1 of modinv is
 
 component divunsigned is
-Generic (MPWID: integer := 40);
+Generic (MPWID: integer);
     Port ( dividend : in std_logic_vector(MPWID-1 downto 0);
            divisor : in std_logic_vector(MPWID-1 downto 0);
            quotient : out std_logic_vector(MPWID-1 downto 0);
@@ -38,7 +29,7 @@ Generic (MPWID: integer := 40);
 end component;
 
 component modmult is
-    Generic (MPWID: integer := 40);
+    Generic (MPWID: integer);
     Port ( mpand : in std_logic_vector(MPWID-1 downto 0);
            mplier : in std_logic_vector(MPWID-1 downto 0);
            modulus : in std_logic_vector(MPWID-1 downto 0);
@@ -82,6 +73,7 @@ signal ds_mult : std_logic;
 signal ready_mult : std_logic;
 begin
 	div: divunsigned
+	Generic Map(MPWID => MPWID)
 	PORT MAP(dividend => dividend_local,
            divisor => divisor_local,
            quotient => quotient_local,
@@ -93,6 +85,7 @@ begin
 			  
 			  
 	mult : modmult
+	Generic Map(MPWID => MPWID)
 	PORT MAP(mpand => mpand_local,
            mplier => mplier_local,
            modulus => modulus_local,
