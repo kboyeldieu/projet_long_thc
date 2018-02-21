@@ -1,5 +1,5 @@
 import serial
-port = serial.Serial("/dev/ttyS0",baudrate=115200, timeout=3.0)
+port = serial.Serial("/dev/ttyS0",baudrate=115200, timeout=5.0)
 
 def remove_leading_zeroes(s):
 	i = 0
@@ -7,39 +7,23 @@ def remove_leading_zeroes(s):
 		i += 1
 	return s[i:] 
 
-res = ""
-last_res = ""
-cpt_0 = 0
-print("### Capturing data from FPGA ###")
-while True:
-	rcv = port.read(32)
+def get_signature(rcv, signature_length):
 	if rcv:
-		signatures = ''.join([format(ord(byte), "#04x")[2:] for byte in rcv])
+		signatures = ''.join([format(ord(byte), "#04x")[2:][::-1] for byte in rcv])
 		for signature in signatures.split('ff'*6):
-			if len(signature) == 20:
-				print(signature)
-				break
-		# if ord(rcv) == 255:
-		# 	if cpt_0 == 6:
-		# 		cpt_0 = 1
-		# 	else :
-		# 		cpt_0 += 1
-		# 	if res:
-		# 		if last_res:
-		# 			if last_res != res :
-		# 				print("### Data sent from FPGA is ###")
-		# 				print(remove_leading_zeroes(res[::-1]))
-		# 				print("### End of data sent from FPGA ###")
-		# 				last_res = res
-		# 		else:
-		# 			print("### Data sent from FPGA is ###")
-		# 			print(remove_leading_zeroes(res[::-1]))
-		# 			print("### End of data sent from FPGA ###")
-		# 			last_res = res
+			if len(signature) == signature_length:
+				return signature[::-1]
+	return None
 
-		# 		res = ""
-		# else:
-		# 	if cpt_0 == 6 :
-		# 		res += format(ord(rcv), "#04x")[2:][::-1]
-		# 	else:
-		# 		cpt_0 = 0
+signature_length = 20
+signature = ""
+last_signature = "0" * signature_length
+print("### Capturing data from FPGA ###\n")
+while True:
+	rcv = port.read(signature_length*2 + 12*3)
+	signature = get_signature(rcv, signature_length)
+	if signature and signature != last_signature:
+		print("### Data sent from FPGA is ###")
+		print(remove_leading_zeroes(signature))
+		print("### End of data sent from FPGA ###\n")
+	last_signature = signature
