@@ -83,7 +83,7 @@ signal tmp_large: std_logic_vector(KEYSIZE*2-1 downto 0);        -- signal to st
 signal waiting: std_logic;
 
 signal alea_cpt: std_logic_vector(KEYSIZE-1 downto 0);      -- cpt to store a random fault
-signal wait_fault_injection: INTEGER RANGE 0 to 1000; -- cpt to wait a fault injection
+signal wait_fault_injection: INTEGER RANGE 0 to 5e7; -- cpt to wait a fault injection
 signal signal_faulted: std_logic;
 
 -- constants : input of the rsa algorithm
@@ -95,13 +95,9 @@ begin
     
     -- initialize constants
     c <= x"000000000000005d0256";
-    p <= x"00000000008c8890258d"; -- 9613
-    q <= x"00000000000ba0002405"; -- 9221
+    p <= x"00000000000005f5ebbf";
+    q <= x"00000000000005f5e7ff";
     d <= x"00005fe15f6d6a6bcde8";
-	 --c <= x"1";
-	 --p <= x"3";
-	 --q <= x"4";
-	 --d <= x"5";
     ready <= done;
         
     -- Exponentiation        
@@ -162,7 +158,7 @@ begin
             step <= 1;
             ledout <= '0';
             alea_cpt <= (others => '0');
-            wait_fault_injection <= 10;
+            wait_fault_injection <= 5e7;
             signal_faulted <= '0';
             iq <= (others => '0');
             dp <= (others => '0');
@@ -184,7 +180,7 @@ begin
 							waiting <= '0';
 							ledout <= '0';
 							alea_cpt <= (others => '0');
-							wait_fault_injection <= 10;
+							wait_fault_injection <= 5e7;
 							signal_faulted <= '0';
 							iq <= (others => '0');
 							dp <= (others => '0');
@@ -239,7 +235,7 @@ begin
                         sp <= expout;
                         expgo <= '0';
                         waiting <= '0';
-                        wait_fault_injection <= 10;
+                        wait_fault_injection <= 5e7;
                         ledout <= '0';
                     elsif waiting = '1' then
                         expgo <= '0';
@@ -290,7 +286,7 @@ begin
 					 else 
 						 modmoddouble(KEYSIZE*2-1 downto KEYSIZE) <= (others => '0');
 						 modmoddouble(KEYSIZE-1 downto 0) <= p; 
-						 modindouble <= std_logic_vector(unsigned(iq) * (unsigned(sq) - unsigned(sp)));
+						 modindouble <= std_logic_vector(unsigned(iq) * (unsigned(sp) - unsigned(sq)));
 						 modgodouble <= '1';
 					 end if;
 				
