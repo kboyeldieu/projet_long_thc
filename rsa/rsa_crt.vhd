@@ -83,7 +83,7 @@ signal tmp_large: std_logic_vector(KEYSIZE*2-1 downto 0);        -- signal to st
 signal waiting: std_logic;
 
 signal alea_cpt: std_logic_vector(KEYSIZE-1 downto 0);      -- cpt to store a random fault
-signal wait_fault_injection: INTEGER RANGE 0 to 5e7; -- cpt to wait a fault injection
+signal wait_fault_injection: INTEGER RANGE 0 to 1000; -- cpt to wait a fault injection
 signal signal_faulted: std_logic;
 
 -- constants : input of the rsa algorithm
@@ -94,10 +94,14 @@ signal d: std_logic_vector(KEYSIZE-1 downto 0); -- private key
 begin
     
     -- initialize constants
-    c <= x"11111111110000000056"; 
-    p <= x"1111111111000000258d"; -- 9613
-    q <= x"11111111110000002405"; -- 9221
-    d <= x"11111111111111111111";
+    c <= x"000000000000005d0256";
+    p <= x"00000000008c8890258d"; -- 9613
+    q <= x"00000000000ba0002405"; -- 9221
+    d <= x"00005fe15f6d6a6bcde8";
+	 --c <= x"1";
+	 --p <= x"3";
+	 --q <= x"4";
+	 --d <= x"5";
     ready <= done;
         
     -- Exponentiation        
@@ -158,7 +162,7 @@ begin
             step <= 1;
             ledout <= '0';
             alea_cpt <= (others => '0');
-            wait_fault_injection <= 5e7;
+            wait_fault_injection <= 10;
             signal_faulted <= '0';
             iq <= (others => '0');
             dp <= (others => '0');
@@ -168,7 +172,9 @@ begin
             
         elsif rising_edge(clk) then
             
-            alea_cpt <= alea_cpt + 1;
+				if signal_faulted = '0' then
+					alea_cpt <= alea_cpt + 1;
+				end if;
             
             if done = '1' then
                 if ds = '1' then
@@ -178,7 +184,7 @@ begin
 							waiting <= '0';
 							ledout <= '0';
 							alea_cpt <= (others => '0');
-							wait_fault_injection <= 5e7;
+							wait_fault_injection <= 10;
 							signal_faulted <= '0';
 							iq <= (others => '0');
 							dp <= (others => '0');
@@ -233,7 +239,7 @@ begin
                         sp <= expout;
                         expgo <= '0';
                         waiting <= '0';
-                        wait_fault_injection <= 5e7;
+                        wait_fault_injection <= 10;
                         ledout <= '0';
                     elsif waiting = '1' then
                         expgo <= '0';
@@ -284,7 +290,7 @@ begin
 					 else 
 						 modmoddouble(KEYSIZE*2-1 downto KEYSIZE) <= (others => '0');
 						 modmoddouble(KEYSIZE-1 downto 0) <= p; 
-						 modindouble <= std_logic_vector(unsigned(iq) * (unsigned(sp) - unsigned(sq)));
+						 modindouble <= std_logic_vector(unsigned(iq) * (unsigned(sq) - unsigned(sp)));
 						 modgodouble <= '1';
 					 end if;
 				
