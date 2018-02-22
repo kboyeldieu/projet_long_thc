@@ -17,15 +17,15 @@ end modinv;
 architecture modinv1 of modinv is
 
 component divunsigned is
-Generic (MPWID: integer);
+    Generic (MPWID: integer);
     Port ( dividend : in std_logic_vector(MPWID-1 downto 0);
            divisor : in std_logic_vector(MPWID-1 downto 0);
            quotient : out std_logic_vector(MPWID-1 downto 0);
-			  remainder : out std_logic_vector(MPWID-1 downto 0);
+	   remainder : out std_logic_vector(MPWID-1 downto 0);
            clk : in std_logic;
            ds : in std_logic;
-			  reset : in std_logic;
-			  ready: out std_logic);
+	   reset : in std_logic;
+	   ready: out std_logic);
 end component;
 
 component modmult is
@@ -73,27 +73,27 @@ signal ds_mult : std_logic;
 signal ready_mult : std_logic;
 begin
 	div: divunsigned
-	Generic Map(MPWID => MPWID)
-	PORT MAP(dividend => dividend_local,
-           divisor => divisor_local,
-           quotient => quotient_local,
-			  remainder => remainder_local,
-           clk  => clk,
-           ds => ds_div,
-			  reset => reset,
-			  ready => ready_div);
+	   Generic Map(MPWID => MPWID)
+	   PORT MAP( dividend => dividend_local,
+                     divisor => divisor_local,
+                     quotient => quotient_local,
+	             remainder => remainder_local,
+                     clk  => clk,
+                     ds => ds_div,
+		     reset => reset,
+		     ready => ready_div);
 			  
 			  
 	mult : modmult
-	Generic Map(MPWID => MPWID)
-	PORT MAP(mpand => mpand_local,
-           mplier => mplier_local,
-           modulus => modulus_local,
-           product => product_local,
-           clk => clk,
-           ds => ds_mult,
-           reset => reset,
-           ready => ready_mult);
+	   Generic Map(MPWID => MPWID)
+	   PORT MAP( mpand => mpand_local,
+                  mplier => mplier_local,
+                  modulus => modulus_local,
+                  product => product_local,
+                  clk => clk,
+                  ds => ds_mult,
+                  reset => reset,
+                  ready => ready_mult);
 	
 	modinv : process(clk, reset, ds, first) is
 	begin
@@ -128,7 +128,8 @@ begin
 				first <= '1';
 			else
 				if step = "0000" then
-            --first step of computation, we need the result of the euclidian division of localinvop by localmodulus
+                                --first step of computation, we need the result of the
+				--euclidian division of localinvop by localmodulus
 					
 					if ready_div = '1' then
 						if is_negative = '1' then
@@ -148,21 +149,21 @@ begin
 						
 				elsif step = "0001" then
 				--second step, we need the result of localinvop % localmodulus assigned to localmodulus
-				
-               if ready_div = '1' then
-						if is_negative = '1' then
-							localmodulus <= localmodulus - remainder_local;
+                                	if ready_div = '1' then
+				   		if is_negative = '1' then
+				        		localmodulus <= localmodulus - remainder_local;
 						else
 							localmodulus <= remainder_local;						
 						end if;
 						ds_div <= '0';
 						step <= "0010"; 
-					else
+				   	else
 						is_negative <= localinvop(MPWID-1);
 						dividend_local <= std_logic_vector(abs(signed(localinvop)));
 						divisor_local <= localmodulus;
 						ds_div <= '1';
 					end if;
+						
 				elsif step = "0010" then
                                         --third step, we need x0 = x1 - q * x0
 					localinvop <= tmpmodulus;
