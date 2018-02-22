@@ -5,7 +5,7 @@ use IEEE.STD_LOGIC_UNSIGNED.ALL;
 use IEEE.NUMERIC_STD.ALL;
                                                             
 entity exponentiation is
-    Generic (KEYSIZE: integer := 40);
+    Generic (KEYSIZE: integer);
     Port ( indata: in std_logic_vector(KEYSIZE-1 downto 0);
            inExp: in std_logic_vector(KEYSIZE-1 downto 0);
            inMod: in std_logic_vector(KEYSIZE-1 downto 0);
