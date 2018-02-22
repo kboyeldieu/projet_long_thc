@@ -44,11 +44,11 @@ Generic (MPWID: integer);
     Port ( dividend : in std_logic_vector(MPWID-1 downto 0);
            divisor : in std_logic_vector(MPWID-1 downto 0);
            quotient : out std_logic_vector(MPWID-1 downto 0);
-    	  remainder : out std_logic_vector(MPWID-1 downto 0);
+          remainder : out std_logic_vector(MPWID-1 downto 0);
            clk : in std_logic;
            ds : in std_logic;
-    	  reset : in std_logic;
-    	  ready: out std_logic);
+          reset : in std_logic;
+          ready: out std_logic);
 end component;
 
 signal expin: std_logic_vector(KEYSIZE-1 downto 0);               -- value to get the exponentiation
@@ -124,7 +124,7 @@ begin
                   ready => modinvrdy);
     
 
-	 modulo: divunsigned
+     modulo: divunsigned
     Generic Map(MPWID => KEYSIZE)
     Port Map ( dividend => modin,
              divisor => modmod,
@@ -135,7 +135,7 @@ begin
              reset => reset,
              ready => modrdy);
     
-	 modulodouble: divunsigned
+     modulodouble: divunsigned
     Generic Map(MPWID => KEYSIZE*2)
     Port Map ( dividend => modindouble,
              divisor => modmoddouble,
@@ -169,52 +169,52 @@ begin
         elsif rising_edge(clk) then
             
             if signal_faulted = '0' then
-        	    alea_cpt <= alea_cpt + 1;
+                alea_cpt <= alea_cpt + 1;
             end if;
             
             if done = '1' then
                 if ds = '1' then
-            	expgo <= '0';
-            	modinvgo <= '0';
-            	modgo <= '0';
-            	waiting <= '0';
-            	ledout <= '0';
-            	alea_cpt <= (others => '0');
-            	wait_fault_injection <= 5e7;
-            	signal_faulted <= '0';
-            	iq <= (others => '0');
-            	dp <= (others => '0');
-            	dq <= (others => '0');
-            	sp <= (others => '0');
-            	sq <= (others => '0');
+                expgo <= '0';
+                modinvgo <= '0';
+                modgo <= '0';
+                waiting <= '0';
+                ledout <= '0';
+                alea_cpt <= (others => '0');
+                wait_fault_injection <= 5e7;
+                signal_faulted <= '0';
+                iq <= (others => '0');
+                dp <= (others => '0');
+                dq <= (others => '0');
+                sp <= (others => '0');
+                sq <= (others => '0');
                 done <= '0';
                 step <= 1;
                 end if;
                 
             elsif step = 1 then
             --compute dp = d mod (p-1)
-        	    if modgo = '1' and modrdy = '1' then
-        	        step <= step + 1;
+                if modgo = '1' and modrdy = '1' then
+                    step <= step + 1;
                     dp <= modout;
                     modgo <= '0';
-        	    else 
+                else 
                     modmod <= p-1;
                     modin <= d;
                     modgo <= '1';
-        	    end if;
+                end if;
   
             elsif step = 2 then
             -- compute dq = d mod (q-1)
-        	    if modgo = '1' and modrdy = '1' then
-        	        step <= step + 1;
+                if modgo = '1' and modrdy = '1' then
+                    step <= step + 1;
                     dq <= modout;
                     modgo <= '0';
-        	    else 
+                else 
                     modmod <= q-1;
                     modin <= d;
                     modgo <= '1';
-        	        end if;
-                	 
+                    end if;
+                     
             elsif step = 3 then
             -- compute iq = q^-1 mod p
                 if modinvrdy = '1' then
@@ -278,28 +278,28 @@ begin
             
             elsif step = 6 then
             -- compute plaintext = iq(sp - sq) mod p
-        	    if modgodouble = '1' and modrdydouble = '1' then
-        	        step <= step + 1;
+                if modgodouble = '1' and modrdydouble = '1' then
+                    step <= step + 1;
                     tmp_large <= modoutdouble;
                     modgodouble <= '0';
                     step <= step + 1;
-        	    else 
+                else 
                     modmoddouble(KEYSIZE*2-1 downto KEYSIZE) <= (others => '0');
                     modmoddouble(KEYSIZE-1 downto 0) <= p; 
                     modindouble <= std_logic_vector(unsigned(iq) * (unsigned(sp) - unsigned(sq)));
                     modgodouble <= '1';
-        	    end if;
+                end if;
         
         
             elsif step = 7 then
             -- compute q(iq(sp - sq) mod p)
                 tmp_large <= q * tmp_large(KEYSIZE-1 downto 0);
-        	    step <= step + 1;
-        	 
-    	    elsif step = 8 then
-    	    -- compute plaintext = sq + q(iq(sp - sq) mod p)
-        	    plaintext <= sq + tmp_large(KEYSIZE-1 downto 0);
-        	    done <= '1';
+                step <= step + 1;
+             
+            elsif step = 8 then
+            -- compute plaintext = sq + q(iq(sp - sq) mod p)
+                plaintext <= sq + tmp_large(KEYSIZE-1 downto 0);
+                done <= '1';
 
             end if;
                 
