@@ -9,11 +9,11 @@ Generic (MPWID: integer);
     Port ( dividend : in std_logic_vector(MPWID-1 downto 0);
            divisor : in std_logic_vector(MPWID-1 downto 0);
            quotient : out std_logic_vector(MPWID-1 downto 0);
-			  remainder : out std_logic_vector(MPWID-1 downto 0);
+	   remainder : out std_logic_vector(MPWID-1 downto 0);
            clk : in std_logic;
            ds : in std_logic;
-			  reset : in std_logic;
-			  ready: out std_logic);
+	   reset : in std_logic;
+	   ready: out std_logic);
 end divunsigned;
 
 architecture Behavioral of divunsigned is
