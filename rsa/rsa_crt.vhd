@@ -94,10 +94,10 @@ signal d: std_logic_vector(KEYSIZE-1 downto 0);                 -- private key
 begin
     
     -- initialize constants
-    c <= x"000000000000005d0256";
-    p <= x"00000000000005f5ebbf";
-    q <= x"00000000000005f5e7ff";
-    d <= x"00005fe15f6d6a6bcde8";
+    c <= x"00000000001234567890";
+    p <= x"0000000000704905c14b";
+    q <= x"00000000006c9ee08481";
+    d <= x"0530114a1d5ec95cdcd1";
     ready <= done;
         
     -- Exponentiation        
