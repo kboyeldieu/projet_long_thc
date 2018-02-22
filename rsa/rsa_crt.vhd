@@ -4,7 +4,7 @@ use IEEE.NUMERIC_STD.ALL;
 use ieee.std_logic_signed.all;
 
 entity RSA_CRT is
-    Generic (KEYSIZE: integer := 40);
+    Generic (KEYSIZE: integer);
     Port ( plaintext: out std_logic_vector(KEYSIZE-1 downto 0);
            fault_signal: in std_logic;
            ledout: out std_logic;
@@ -17,7 +17,7 @@ end RSA_CRT;
 architecture Behavioral of RSA_CRT is
 
 component exponentiation is
-    Generic (KEYSIZE: integer := 40);
+    Generic (KEYSIZE: integer);
     Port ( inData: in std_logic_vector(KEYSIZE-1 downto 0);
            inExp: in std_logic_vector(KEYSIZE-1 downto 0); 
            inMod: in std_logic_vector(KEYSIZE-1 downto 0);
@@ -29,7 +29,7 @@ component exponentiation is
 end component;
 
 component modinv is
-    Generic(MPWID: integer := 40);
+    Generic(MPWID: integer);
     Port( invop : in std_logic_vector(MPWID-1 downto 0);
           modulus : in std_logic_vector(MPWID-1 downto 0);
           result : out std_logic_vector(MPWID-1 downto 0);
