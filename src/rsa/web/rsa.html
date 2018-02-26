@@ -114,16 +114,16 @@
         context.beginPath();
         context.moveTo(left.start.attrs.x, left.start.attrs.y);
         context.quadraticCurveTo(left.control.attrs.x, left.control.attrs.y, left.end.attrs.x, left.end.attrs.y);
-        context.setAttr('strokeStyle', 'gray');
-        context.setAttr('lineWidth', 4);
+        context.setAttr('strokeStyle', '#e74c3c');
+        context.setAttr('lineWidth', 6);
         context.stroke();
 
         // draw right
         context.beginPath();
         context.moveTo(right.start.attrs.x, right.start.attrs.y);
         context.quadraticCurveTo(right.control.attrs.x, right.control.attrs.y, right.end.attrs.x, right.end.attrs.y);
-        context.setAttr('strokeStyle', 'gray');
-        context.setAttr('lineWidth', 4);
+        context.setAttr('strokeStyle', '#e74c3c');
+        context.setAttr('lineWidth', 6);
         context.stroke();
     }
 
@@ -165,15 +165,15 @@
     lineLayer.add(rightLeg);
 
     left = {
-        control: buildStaticAnchor(350, 533),
-        start: buildAnchor(350, 533),
-        end: buildStaticAnchor(550, 533)
+        control: buildStaticAnchor(350, 521.5),
+        start: buildAnchor(350, 521.5),
+        end: buildStaticAnchor(550, 521.5)
     };
 
     right = {
-        control: buildStaticAnchor(917, 533),
-        start: buildAnchor(917, 533),
-        end: buildStaticAnchor(717, 533)
+        control: buildStaticAnchor(859, 521.5),
+        start: buildAnchor(859, 521.5),
+        end: buildStaticAnchor(659, 521.5)
     };
 
     // keep curves insync with the lines
@@ -191,7 +191,7 @@
 
     resistanceImg = new Image();
     resistanceImg.onload = function() {
-      imageLayer.getContext().drawImage(resistanceImg,550,500,167,66); // 
+      imageLayer.getContext().drawImage(resistanceImg,550,500,109,43); 
     };
     resistanceImg.src = 'resistance.png';
 
