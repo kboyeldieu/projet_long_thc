@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html>
+<head><title>Canvas code example</title>
+<script type="text/javascript">
+function fun1(x,i) {
+	var dx = 4;
+	var x0 = .5 + .5*window.innerWidth;
+	var iMin = Math.round(-x0/dx);
+	if(i <= iMin + 8*Math.PI){
+		return 3*Math.sin(2*x) + 2 * Math.sin(4*x)  ;
+	  }
+	else if (iMin + 32*Math.PI <= i  && i <= iMin + 40*Math.PI ) {
+		return 3*Math.sin(2*x) + 2 * Math.sin(4*x)  ;
+	}
+	else if (iMin + 64*Math.PI <= i  && i <= iMin + 72*Math.PI ) {
+		return 3*Math.sin(2*x) + 2 * Math.sin(4*x)  ;
+	}
+	else if (iMin + 104*Math.PI <= i  && i <= iMin + 112*Math.PI ) {
+		return 3*Math.sin(2*x) + 2 * Math.sin(4*x)  ;
+	}
+	else if (iMin + 120*Math.PI <= i  && i <= iMin + 128*Math.PI ) {
+		return 3*Math.sin(2*x) + 2 * Math.sin(4*x)  ;
+	}
+	else {
+		return 3*Math.sin(2*x);
+	}
+	}
+
+function draw() {
+ var canvas = document.getElementById("canvas");
+ if (null==canvas || !canvas.getContext) return;
+
+ canvas.width = window.innerWidth;
+ canvas.height = window.innerHeight;
+ var axes={}, ctx=canvas.getContext("2d");
+ axes.x0 = .5 + .5*canvas.width;  // x0 pixels from left to x=0
+ axes.y0 = .5 + .5*canvas.height; // y0 pixels from top to y=0
+ axes.scale = 40;                 // 40 pixels from x=0 to x=1
+ axes.doNegativeX = true;
+
+ showAxes(ctx,axes,canvas);
+ funGraph(ctx,axes,fun1,"rgb(255,0,0)",1); 
+}
+
+function funGraph (ctx,axes,func,color,thick) {
+ var xx, yy, dx=4, x0=axes.x0, y0=axes.y0, scale=axes.scale;
+ var iMax = Math.round((ctx.canvas.width-x0)/dx);
+ var iMin = axes.doNegativeX ? Math.round(-x0/dx) : 0;
+ ctx.beginPath();
+ ctx.lineWidth = thick;
+ ctx.strokeStyle = color;
+ var timeStep = document.getElementById("timeStep").value / 5*10**(-7);
+ var voltStep = document.getElementById("voltStep").value;
+ for (var i=iMin;i<=iMax;i++) {
+  xx = dx*i; yy = (1/voltStep)*scale*func(timeStep*xx/scale,i); 
+  if (i==iMin) ctx.moveTo(x0+xx,y0-yy);
+  else         ctx.lineTo(x0+xx,y0-yy);
+ }
+ ctx.scale(2,2);
+ ctx.stroke();
+}
+
+function showAxes(ctx,axes,canvas) {
+ var x0=axes.x0, w=ctx.canvas.width;
+ var y0=axes.y0, h=ctx.canvas.height;
+ var xmin = axes.doNegativeX ? 0 : x0;
+ ctx.beginPath();
+ ctx.strokeStyle = "rgb(32,32,32)"; 
+ ctx.moveTo(xmin,y0); ctx.lineTo(w,y0);  // X axis
+ ctx.moveTo(x0,0);    ctx.lineTo(x0,h);  // Y axis
+ drawGrid(window.innerWidth,window.innerHeight,ctx);
+ ctx.stroke();
+}
+
+
+function drawGrid (w, h, ctx) {
+ ctx.canvas.width = w;
+ ctx.canvas.height = h; for (x = 0; x <= w; x += 20) {
+     ctx.moveTo(x, 0);
+     ctx.lineTo(x, h);
+     for (y = 0; y <= h; y += 20) {
+         ctx.moveTo(0, y);
+         ctx.lineTo(w, y);
+     }
+ }
+}
+</script>
+</head>
+<body onload="draw()">
+<canvas id="canvas" width=100% height=100%></canvas>
+Time step (1/s) : <input onchange="draw()" type="text" id="timeStep" value="1">
+Volt step (V): <input onchange="draw()" type="text" id="voltStep" value="1">
+</body>
+</html>
