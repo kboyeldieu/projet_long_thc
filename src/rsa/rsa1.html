@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.rawgit.com/konvajs/konva/1.7.6/konva.min.js"></script>
+  <meta charset="utf-8">
+  <title>Attaque par analyse de courant sur RSA</title>
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #FFFFFF;
+    }
+  </style>
+</head>
+<body>
+  <div id="container"></div>
+  <script>
+
+    var expectedX = 428;
+    var expectedY = 280;
+    var R = 8;
+
+    var width = window.innerWidth;
+    var height = window.innerHeight;
+
+    // globals
+    var curveLayer, lineLayer, anchorLayer, imageLayer, arduinoImg, resistanceImg, left, right;
+
+    function updateDottedLines() {
+        var l = left;
+        var r = right
+
+        var leftLeg = lineLayer.get('#leftLeg')[0];
+        var rightLeg = lineLayer.get('#rightLeg')[0];
+
+        leftLeg.setPoints([l.start.attrs.x, l.start.attrs.y, l.control.attrs.x, l.control.attrs.y, l.end.attrs.x, l.end.attrs.y]);
+
+        rightLeg.setPoints([r.start.attrs.x, r.start.attrs.y, r.control.attrs.x, r.control.attrs.y, r.end.attrs.x, r.end.attrs.y]);
+
+        lineLayer.draw();
+    }
+
+    function correctlyPut(x,y) {
+      var toot = 4*5;
+      if ((x - expectedX) * (x - expectedX) + (y - expectedY) * (y - expectedY) <= R * R) {
+        return true;
+      }
+      return false;
+    }
+    function buildAnchor(x, y) {
+        var anchor = new Konva.Circle({
+            x: x,
+            y: y,
+            radius: 5,
+            stroke: '#666',
+            fill: '#ddd',
+            strokeWidth: 1,
+            draggable: true
+        });
+
+        // add hover styling
+        anchor.on('mouseover', function() {
+            document.body.style.cursor = 'pointer';
+            this.setStrokeWidth(4);
+            anchorLayer.draw();
+        });
+        anchor.on('mouseout', function() {
+            document.body.style.cursor = 'default';
+            this.setStrokeWidth(2);
+            anchorLayer.draw();
+
+        });
+
+        anchor.on('dragend', function() {
+            var xLeft = left.start.x();
+            var yLeft = left.start.y();
+            var xRight = right.start.x();
+            var yRight = right.start.y();
+
+            if (correctlyPut(xLeft, yLeft) && correctlyPut(xRight, yRight)) {
+              window.alert("well done");
+            } 
+
+            drawCurves();
+            updateDottedLines();
+        });
+
+        anchorLayer.add(anchor);
+        return anchor;
+    }
+
+    function buildStaticAnchor(x, y) {
+        var anchor = new Konva.Circle({
+            x: x,
+            y: y,
+            radius: 0,
+            stroke: '#666',
+            fill: '#ddd',
+            strokeWidth: 0,
+            draggable: false
+        });
+
+        anchorLayer.add(anchor);
+        return anchor;
+    }
+
+    function drawCurves() {
+        var context = curveLayer.getContext();
+
+        context.clear();
+
+        // draw left
+        context.beginPath();
+        context.moveTo(left.start.attrs.x, left.start.attrs.y);
+        context.quadraticCurveTo(left.control.attrs.x, left.control.attrs.y, left.end.attrs.x, left.end.attrs.y);
+        context.setAttr('strokeStyle', 'gray');
+        context.setAttr('lineWidth', 4);
+        context.stroke();
+
+        // draw right
+        context.beginPath();
+        context.moveTo(right.start.attrs.x, right.start.attrs.y);
+        context.quadraticCurveTo(right.control.attrs.x, right.control.attrs.y, right.end.attrs.x, right.end.attrs.y);
+        context.setAttr('strokeStyle', 'gray');
+        context.setAttr('lineWidth', 4);
+        context.stroke();
+    }
+
+    var stage = new Konva.Stage({
+        container: 'container',
+        width: width,
+        height: height
+    });
+
+    anchorLayer = new Konva.Layer();
+    lineLayer = new Konva.Layer();
+
+    // curveLayer just contains a canvas which is drawn
+    // onto with the existing canvas API
+    curveLayer = new Konva.Layer();
+
+    var leftLeg = new Konva.Line({
+        dash: [10, 10, 0, 10],
+        strokeWidth: 100,
+        stroke: 'black',
+        lineCap: 'round',
+        id: 'leftLeg',
+        opacity: 1,
+        points: [0, 0]
+    });
+
+    var rightLeg = new Konva.Line({
+        dash: [10, 10, 0, 10],
+        strokeWidth: 100,
+        stroke: 'black',
+        lineCap: 'round',
+        id: 'rightLeg',
+        opacity: 1,
+        points: [0, 0]
+    });
+
+    // add dotted line connectors
+    lineLayer.add(leftLeg);
+    lineLayer.add(rightLeg);
+
+    left = {
+        control: buildStaticAnchor(350, 533),
+        start: buildAnchor(350, 533),
+        end: buildStaticAnchor(550, 533)
+    };
+
+    right = {
+        control: buildStaticAnchor(917, 533),
+        start: buildAnchor(917, 533),
+        end: buildStaticAnchor(717, 533)
+    };
+
+    // keep curves insync with the lines
+    anchorLayer.on('beforeDraw', function() {
+        drawCurves();
+        updateDottedLines();
+    });
+
+    imageLayer = new Konva.Layer();
+    arduinoImg = new Image();
+    arduinoImg.onload = function() {
+      imageLayer.getContext().drawImage(arduinoImg,200,100,788.4,313.2);
+    };
+    arduinoImg.src = 'arduino_nano.jpg';
+
+    resistanceImg = new Image();
+    resistanceImg.onload = function() {
+      imageLayer.getContext().drawImage(resistanceImg,550,500,167,66); // 
+    };
+    resistanceImg.src = 'resistance.png';
+
+    stage.add(imageLayer);
+    stage.add(curveLayer);
+    stage.add(anchorLayer);
+
+    drawCurves();
+    updateDottedLines();
+  </script>
+
+</body>
+</html>
