@@ -2,18 +2,70 @@
 <html>
 <head>
   <script src="https://cdn.rawgit.com/konvajs/konva/1.7.6/konva.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
   <meta charset="utf-8">
-  <title>Attaque par analyse de courant sur RSA</title>
+  <title>Attaque par analyse de courant sur RSA : étape 1</title>
   <style>
+
     body {
       margin: 0;
       padding: 0;
       overflow: hidden;
       background-color: #FFFFFF;
     }
+
+    .next {
+      border: none;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 50px;
+      padding: 5px 30px;
+      background-color: #27AE60;
+      color: white;
+      -webkit-transition-duration: 0.4s; /* Safari */
+      transition-duration: 0.4s;
+      position: absolute;
+      top: 80%;
+      left: 90%;
+      z-index: 2;
+      cursor: pointer;
+    }
+
+    .next:hover {
+      transform: scale(1.15);
+    }
+
+    .disabled {
+      cursor: not-allowed;
+      color: white;
+      background-color: #DDD;
+    }
+
+    .top-bar {
+      width: 100%; /* Set a specific width */
+      padding: 20px 0px;
+      background-color: #DDD; /* Dark-grey background */
+
+      text-align: center;
+      font-size: 25px;
+    }
+
+    .done {
+      background-color: #27AE60;
+      color: white;
+    }
+
+    .almost-done {
+      background-color: #F39C12;
+      color: white;
+    }
+
+
   </style>
 </head>
 <body>
+  <div id="topBar" class="top-bar"> Étape 1 : Place la résistance sur le circuit afin de pouvoir observer la consommation instantannée de courant.</div>
+  <button id="next" onclick="changePage()" onhref="#" class="next disabled">&#8250;</button>
   <div id="container"></div>
   <script>
 
@@ -26,6 +78,14 @@
 
     // globals
     var curveLayer, lineLayer, anchorLayer, imageLayer, arduinoImg, resistanceImg, left, right;
+    var nextButton = document.getElementById("next");
+    var topBar = document.getElementById("topBar");
+
+    function changePage() {
+      if (nextButton.className == "next") {
+        document.location.href = "#";
+      }
+    }
 
     function updateDottedLines() {
         var l = left;
@@ -42,12 +102,12 @@
     }
 
     function correctlyPut(x,y) {
-      var toot = 4*5;
-      if ((x - expectedX) * (x - expectedX) + (y - expectedY) * (y - expectedY) <= R * R) {
+      if ((x - expectedX)*(x - expectedX) + (y - expectedY)*(y - expectedY) <= R*R) {
         return true;
       }
       return false;
     }
+
     function buildAnchor(x, y) {
         var anchor = new Konva.Circle({
             x: x,
@@ -79,8 +139,15 @@
             var yRight = right.start.y();
 
             if (correctlyPut(xLeft, yLeft) && correctlyPut(xRight, yRight)) {
-              window.alert("well done");
-            } 
+                nextButton.className = "next";
+                topBar.className = "top-bar done";
+            } else if (correctlyPut(xLeft, yLeft) || correctlyPut(xRight, yRight)) {
+                nextButton.className = "next disabled";
+                topBar.className = "top-bar almost-done";
+            } else {
+              nextButton.className = "next disabled";
+              topBar.className = "top-bar";
+            }
 
             drawCurves();
             updateDottedLines();
