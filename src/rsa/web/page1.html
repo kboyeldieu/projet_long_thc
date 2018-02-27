@@ -3,6 +3,7 @@
 <head>
   <script src="https://cdn.rawgit.com/konvajs/konva/1.7.6/konva.min.js"></script>
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://unpkg.com/tippy.js@2.2.3/dist/tippy.all.min.js"></script>
   <meta charset="utf-8">
   <title>Attaque par analyse de courant sur RSA : étape 1</title>
   <style>
@@ -45,7 +46,7 @@
       width: 100%; /* Set a specific width */
       padding: 20px 0px;
       background-color: #DDD; /* Dark-grey background */
-
+      transition-duration: 0.4s;
       text-align: center;
       font-size: 25px;
     }
@@ -60,17 +61,51 @@
       color: white;
     }
 
+    .help {
+      border: none;
+      border-radius: 100%;
+      text-decoration: none;
+      font-size: 50px;
+      padding: 5px 22px;
+      background-color: #f1c40f;
+      opacity:0.8;
+      color: white;
+      -webkit-transition-duration: 0.4s; /* Safari */
+      transition-duration: 0.4s;
+      position: absolute;
+      top: 81%;
+      left: 3%;
+      z-index: 2;
+      cursor: pointer;
+    }
+
+    .help:hover {
+      transform: scale(1.15);
+    }
+
+    .help-box {
+      position:absolute;
+      width:100%;
+      height:50%;
+      background:#24EF2D;
+      display:none;
+      z-index: 3;
+    }
 
   </style>
 </head>
 <body>
-  <div id="topBar" class="top-bar"> Étape 1 : Place la résistance sur le circuit afin de pouvoir observer la consommation instantannée de courant.</div>
-  <button id="next" onclick="changePage()" onhref="#" class="next disabled">&#8250;</button>
+  <div class="top-bar" id="topBar"> Étape 1 : Place la résistance sur le circuit afin de pouvoir observer la consommation instantannée de courant.</div>
+  <button class="next disabled" id="next" onclick="changePage()" onhref="#" >&#8250;</button>
+  <button class="help" onmouseover="changeHelpBoxVisibility()" onmouseout="changeHelpBoxVisibility()">?</button>
+  <div class="help-box" id="helpBox"> Help popup</div>
   <div id="container"></div>
   <script>
 
-    var expectedX = 428;
-    var expectedY = 280;
+    var xGoodLeg1 = 562;
+    var yGoodLeg1 = 205.5;
+    var xGoodLeg2 = 543;
+    var yGoodLeg2 = 187.5;
     var R = 8;
 
     var width = window.innerWidth;
@@ -80,10 +115,19 @@
     var curveLayer, lineLayer, anchorLayer, imageLayer, arduinoImg, resistanceImg, left, right;
     var nextButton = document.getElementById("next");
     var topBar = document.getElementById("topBar");
+    var helpBox = document.getElementById("helpBox");
 
     function changePage() {
       if (nextButton.className == "next") {
-        document.location.href = "#";
+        document.location.href = "page2.html";
+      }
+    }
+
+    function changeHelpBoxVisibility() {
+      if (helpBox.style.display == "block") {
+        helpBox.style.display = "none"
+      } else {
+        helpBox.style.display = "block"
       }
     }
 
@@ -101,8 +145,8 @@
         lineLayer.draw();
     }
 
-    function correctlyPut(x,y) {
-      if ((x - expectedX)*(x - expectedX) + (y - expectedY)*(y - expectedY) <= R*R) {
+    function correctlyPut(x,y,xLeg,yLeg) {
+      if ((x - xLeg)*(x - xLeg) + (y - yLeg)*(y - yLeg) <= R*R) {
         return true;
       }
       return false;
@@ -138,10 +182,12 @@
             var xRight = right.start.x();
             var yRight = right.start.y();
 
-            if (correctlyPut(xLeft, yLeft) && correctlyPut(xRight, yRight)) {
+            if (correctlyPut(xLeft, yLeft, xGoodLeg1, yGoodLeg1) && correctlyPut(xRight, yRight, xGoodLeg1, yGoodLeg1) ||
+                correctlyPut(xLeft, yLeft, xGoodLeg2, yGoodLeg2) && correctlyPut(xRight, yRight, xGoodLeg2, yGoodLeg2)) {
                 nextButton.className = "next";
                 topBar.className = "top-bar done";
-            } else if (correctlyPut(xLeft, yLeft) || correctlyPut(xRight, yRight)) {
+            } else if (correctlyPut(xLeft, yLeft, xGoodLeg1, yGoodLeg1) || correctlyPut(xRight, yRight, xGoodLeg1, yGoodLeg1) ||
+                       correctlyPut(xLeft, yLeft, xGoodLeg2, yGoodLeg2) || correctlyPut(xRight, yRight, xGoodLeg2, yGoodLeg2)) {
                 nextButton.className = "next disabled";
                 topBar.className = "top-bar almost-done";
             } else {
@@ -197,7 +243,7 @@
     var stage = new Konva.Stage({
         container: 'container',
         width: width,
-        height: height
+        height: height,
     });
 
     anchorLayer = new Konva.Layer();
