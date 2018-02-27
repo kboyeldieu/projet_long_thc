@@ -105,6 +105,7 @@
     var capacitorsX = [247,240,301,478,589,736,807];
     var capacitorsY = [345.5,295,171,179,275,165,311];
     var capacitorsR = [25,15,15,15,15,15,25];
+    var capacitorsRemoved = [];
 
     var width = window.innerWidth;
     var height = window.innerHeight;
@@ -117,7 +118,7 @@
 
     function changePage() {
       if (nextButton.className == "next") {
-        document.location.href = "#";
+        document.location.href = "graph.html";
       }
     }
 
@@ -155,29 +156,32 @@
     stage.add(capacitorsLayer);
 
     stage.on('contentClick', function() {
-      if (capacitorsX.length == 0) {
+
+      if (capacitorsRemoved.length == capacitorsX.length) {
         return;
       }
+
       var ok = false;
       var x = parseInt(stage.getPointerPosition().x);
       var y = parseInt(stage.getPointerPosition().y);
       for (i = 0; i < capacitorsX.length; i++) { 
         if ((x - capacitorsX[i])*(x - capacitorsX[i]) + (y - capacitorsY[i])*(y - capacitorsY[i]) <= capacitorsR[i]*capacitorsR[i]) {
-          var circle = new Konva.Circle({
-            x: capacitorsX[i],
-            y: capacitorsY[i],
-            stroke:'#27AE60',
-            strokeWidth:5,
-            radius: capacitorsR[i]
-          });
-          capacitorsLayer.add(circle).draw();
-          capacitorsX.splice(i,1);
-          capacitorsY.splice(i,1);
-          capacitorsR.splice(i,1);
+          if (capacitorsRemoved.indexOf(i) == -1) {
+            var circle = new Konva.Circle({
+              x: capacitorsX[i],
+              y: capacitorsY[i],
+              stroke:'#27AE60',
+              strokeWidth:5,
+              radius: capacitorsR[i]
+            });
+            capacitorsLayer.add(circle).draw();
+            capacitorsRemoved.push(i);
+          }
           ok = true;
           break;
         }
       }
+
       if (!ok) {
         var crossLine1 = new Konva.Line({
           points: [x-10,y-10,x+10,y+10],
@@ -192,10 +196,12 @@
         capacitorsLayer.add(crossLine1);
         capacitorsLayer.add(crossLine2).draw();
       }
-      if (capacitorsX.length == 0) {
+
+      if (capacitorsRemoved.length == capacitorsX.length) {
         nextButton.className = "next";
         topBar.className = "top-bar done";
       }
+
     });
 
   </script>
