@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <script src="https://cdn.rawgit.com/konvajs/konva/1.7.6/konva.min.js"></script>
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script src="https://unpkg.com/tippy.js@2.2.3/dist/tippy.all.min.js"></script>
+  <meta charset="utf-8">
+  <title>Attaque par analyse de courant sur RSA : étape 0</title>
+  <style>
+
+    body {
+      margin: 0;
+      padding: 0;
+      overflow: hidden;
+      background-color: #FFFFFF;
+    }
+
+    .next {
+      border: none;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 50px;
+      padding: 5px 30px;
+      background-color: #27AE60;
+      color: white;
+      -webkit-transition-duration: 0.4s; /* Safari */
+      transition-duration: 0.4s;
+      position: absolute;
+      top: 80%;
+      left: 90%;
+      z-index: 2;
+      cursor: pointer;
+    }
+
+    .next:hover {
+      transform: scale(1.15);
+    }
+
+    .disabled {
+      cursor: not-allowed;
+      color: white;
+      background-color: #DDD;
+    }
+
+    .top-bar {
+      width: 100%; /* Set a specific width */
+      padding: 20px 0px;
+      background-color: #DDD; /* Dark-grey background */
+      transition-duration: 0.4s;
+      text-align: center;
+      font-size: 25px;
+    }
+
+    .done {
+      background-color: #27AE60;
+      color: white;
+    }
+
+    .wrong {
+      background-color: #e74c3c;
+      color: white;
+    }
+
+    .almost-done {
+      background-color: #F39C12;
+      color: white;
+    }
+
+    .help {
+      border: none;
+      border-radius: 100%;
+      text-decoration: none;
+      font-size: 50px;
+      padding: 5px 22px;
+      background-color: #f1c40f;
+      opacity:0.8;
+      color: white;
+      -webkit-transition-duration: 0.4s; /* Safari */
+      transition-duration: 0.4s;
+      position: absolute;
+      top: 81%;
+      left: 3%;
+      z-index: 2;
+      cursor: pointer;
+    }
+
+    .help:hover, .help:hover {
+      transform: scale(1.15);
+    }
+
+    .help-box {
+      position:absolute;
+      width:100%;
+      height:50%;
+      background:#24EF2D;
+      display:none;
+      z-index: 3;
+    }
+
+    input[type=text] {
+      width: 70%;
+      font-size:64px;
+      padding: 12px 20px;
+      margin: 8px 0;
+      border: 3px solid #ccc;
+      border-radius: 4px;
+      background-color: #f8f8f8;
+      text-align:center;
+      box-sizing: border-box;
+      position:absolute;
+      left:10%;
+      top:40%;
+    }
+
+    .submit {
+      border: none;
+      border-radius: 8px;
+      text-decoration: none;
+      font-size: 50px;
+      border: 3px solid #ccc;
+      padding: 21.5px 30px;
+      background-color:#f8f8f8;
+      color: #ccc;
+      -webkit-transition-duration: 0.4s; /* Safari */
+      transition-duration: 0.4s;
+      position:absolute;
+      left:82%;
+      top:40.7%;
+      cursor: pointer;
+    }
+
+    .submit:hover {
+      border-color: black;
+      color:black;
+    }
+
+  </style>
+</head>
+<body>
+  <div class="top-bar" id="topBar"> Étape 0 : Quelle loi physique permet-elle de mesurer la consommation instannée de courant du circuit?</div>
+  <button class="next disabled" id="next" onclick="changePage()" onhref="#" >&#8250;</button>
+  <button class="help" onmouseover="changeHelpBoxVisibility()" onmouseout="changeHelpBoxVisibility()">?</button>
+  <input type="text" id="textField" placeholder="" onkeypress="keyPressed(event)"></input>
+  <button class="submit" onclick="checkAnswer()">OK</button>
+  <div class="help-box" id="helpBox"> Help popup</div>
+  <div id="container"></div>
+  <script>
+
+    var textField = document.getElementById("textField");
+    var nextButton = document.getElementById("next");
+    var topBar = document.getElementById("topBar");
+
+    function changePage() {
+      if (nextButton.className == "next") {
+        document.location.href = "page1.html";
+      }
+    }
+
+    function changeHelpBoxVisibility() {
+      if (helpBox.style.display == "block") {
+        helpBox.style.display = "none";
+      } else {
+        helpBox.style.display = "block";
+      }
+    }
+
+    function checkAnswer() {
+      var ok = false;
+      var text = textField.value.toLowerCase();
+      text = text.replace(/ /g, '');
+      text = text.replace(/=/g, '');
+      text = text.replace(/x/g, '');
+      text = text.replace(/\*/g, '');
+      if (text === "uri") {
+          nextButton.className = "next";
+          topBar.className = "top-bar done";
+      } else {
+        nextButton.className = "next disabled";
+        topBar.className = "top-bar wrong";
+      }
+    }
+
+    function keyPressed(e){
+      var keynum;
+
+      if(window.event) { // IE                    
+        keynum = e.keyCode;
+      } else if(e.which){ // Netscape/Firefox/Opera                   
+        keynum = e.which;
+      }
+
+      if (keynum == 13) {
+        checkAnswer();
+      }
+    }
+    $(document).keypress(function(event){});
+  </script>
+
+</body>
+</html>
