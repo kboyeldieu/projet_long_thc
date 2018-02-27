@@ -1,6 +1,19 @@
 <!DOCTYPE html>
 <html>
-<head><title>Canvas code example</title>
+<head><title>Attaque par analyse de courant sur RSA : étape 3</title>
+  <style>
+
+    .top-bar {
+      width: 100%; /* Set a specific width */
+      padding: 20px 0px;
+      background-color: #DDD; /* Dark-grey background */
+      transition-duration: 0.4s;
+      text-align: center;
+      font-size: 25px;
+    }
+
+  </style>
+
 <script type="text/javascript">
 var counter = 0;
 function fun1(x,i) {
@@ -163,9 +176,10 @@ function success() {
 </script>
 </head>
 <body onload="draw()">
+<div class="top-bar" id="topBar"> Étape 3 : Réglage de l'oscilloscope pour trouver les bits de clef.</div>
 <canvas id="canvas" width=100% height=100%></canvas>
-Time step (1/s) : <input onchange="draw()" type="text" id="timeStep" value="1">
-Volt step (V): <input onchange="draw()" type="text" id="voltStep" value="1">
+Frequence de l'horloge (1/s) : <input onchange="draw()" type="text" id="timeStep" value="1">
+Voltage (V): <input onchange="draw()" type="text" id="voltStep" value="1">
 <button type="button" onclick="increment()">Next (<span id="myCounter"></span> / 4)</button>
 Result (hex): <input onchange="success()" type="text" id="key" value="0x">
 </body>
