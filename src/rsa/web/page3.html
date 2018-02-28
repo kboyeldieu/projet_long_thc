@@ -1,24 +1,150 @@
 <!DOCTYPE html>
 <html>
 <head><title>Attaque par analyse de courant sur RSA : étape 3</title>
-  <style>
+<meta charset="utf-8">
+<style>
 
-    .top-bar {
-      width: 100%; /* Set a specific width */
-      padding: 20px 0px;
-      background-color: #DDD; /* Dark-grey background */
-      transition-duration: 0.4s;
-      text-align: center;
-      font-size: 25px;
-    }
+	body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: #FFFFFF;
+  }
 
-  </style>
+	#parent {
+	  overflow:scroll;
+	  left:24%;
+	  top:21.1%;
+	  width:660px;
+	  height:350px;
+	  position:absolute;
+	  z-index:1;
+	}
 
+	#canvas {
+	  position:absolute;
+	  z-index:1;
+	  background-color:#00a287;
+	}
+
+	#oscillo {
+		position:absolute;
+		left:20%;
+		top:15%;
+		z-index:-1;
+	}
+
+	#timeStep {
+		position:absolute;
+		left:63%;
+		top:70%;
+		width:80px;
+		z-index:2;
+	}
+
+	#timeValue {
+		position:absolute;
+		font-size:13px;
+		left:70%;
+		top:68.3%;
+		z-index:2;
+	}
+
+	#timeUnit {
+		position:absolute;
+		font-size:13px;
+		left:73.5%;
+		top:68.3%;
+		z-index:2;
+	}
+
+	#voltStep {
+		position:absolute;
+		left:63%;
+		top:74%;
+		width:80px;
+		z-index:2;
+	}
+
+	#voltValue {
+		position:absolute;
+		font-size:13px;
+		left:70%;
+		top:72.3%;
+		z-index:2;
+	}
+
+	#voltUnit {
+		position:absolute;
+		font-size:13px;
+		left:73.5%;
+		top:72.3%;
+		z-index:2;
+	}
+
+	#nextTrace {
+		position:absolute;
+    border-radius: 8px;
+		background-color:#dfdfd5;
+		font-size:10px;
+		left:53.7%;
+		top:69.7%;
+		z-index:2;
+	}
+
+	#nextTrace,#voltStep,#timeStep:hover {
+		cursor:pointer;
+	}
+
+	input[type=text] {
+    width: 70%;
+    font-size:34px;
+    padding: 12px 20px;
+    margin: 8px 0;
+    border: 3px solid black;
+    border-radius: 4px;
+    background-color: #f8f8f8;
+    text-align:center;
+    box-sizing: border-box;
+    position:absolute;
+    left:15%;
+    top:85%;
+    z-index:2;
+  }
+
+	.top-bar {
+    width: 100%; /* Set a specific width */
+    padding: 20px 0px;
+    background-color: #DDD; /* Dark-grey background */
+    transition-duration: 0.4s;
+    text-align: center;
+    font-size: 25px;
+    z-index: -1;
+  }
+
+  .done {
+    background-color: #27AE60;
+    color: white;
+  }
+
+  .wrong {
+    background-color: #e74c3c;
+    color: white;
+  }
+
+</style>
 <script type="text/javascript">
+
+var voltSteps = [0.001,0.005,0.01,0.05,0.1,0.5,1,1.5,5,10,50];
+var timeSteps = [10000,50000,100000,500000,1000000,3000000,10000000,30000000,50000000,100000000,300000000];
+var timeStepsStrings = ["1e-4","2e-5","1e-5","2e-6","1e-6","3.33e-7","1e-7","3.33e-8","2e-8","1e-8","3.33e-9"];
+var voltStepsStrings = ["0.001","0.005","0.01","0.05","0.1","0.5","1","1.5","5","10","50"];
+
 var counter = 0;
+
 function fun1(x,i) {
 	var dx = 4;
-	var x0 = .5 + .5*window.innerWidth;
+	var x0 = .5 + .5*2074;
 	var iMin = Math.round(-x0/dx);
 	if (counter == 0) {
 		if(i <= iMin + 8*Math.PI){
@@ -97,8 +223,6 @@ function draw() {
  var canvas = document.getElementById("canvas");
  if (null==canvas || !canvas.getContext) return;
 
- canvas.width = window.innerWidth;
- canvas.height = window.innerHeight;
  var axes={}, ctx=canvas.getContext("2d");
  axes.x0 = .5 + .5*canvas.width;  // x0 pixels from left to x=0
  axes.y0 = .5 + .5*canvas.height; // y0 pixels from top to y=0
@@ -106,7 +230,7 @@ function draw() {
  axes.doNegativeX = true;
 
  showAxes(ctx,axes,canvas);
- funGraph(ctx,axes,fun1,"rgb(255,0,0)",1); 
+ funGraph(ctx,axes,fun1,"#65f6e7",1.8); 
  document.getElementById("myCounter").innerHTML = counter + 1;
 }
 
@@ -117,8 +241,8 @@ function funGraph (ctx,axes,func,color,thick) {
  ctx.beginPath();
  ctx.lineWidth = thick;
  ctx.strokeStyle = color;
- var timeStep = document.getElementById("timeStep").value / 5*10**(-7);
- var voltStep = document.getElementById("voltStep").value;
+ var timeStep = timeSteps[document.getElementById("timeStep").value] / 5*10**(-7);
+ var voltStep = voltSteps[document.getElementById("voltStep").value];
  for (var i=iMin;i<=iMax;i++) {
   xx = dx*i; yy = (1/voltStep)*scale*func(timeStep*xx/scale,i); 
   if (i==iMin) ctx.moveTo(x0+xx,y0-yy);
@@ -133,20 +257,20 @@ function showAxes(ctx,axes,canvas) {
  var y0=axes.y0, h=ctx.canvas.height;
  var xmin = axes.doNegativeX ? 0 : x0;
  ctx.beginPath();
- ctx.strokeStyle = "rgb(32,32,32)"; 
- ctx.moveTo(xmin,y0); ctx.lineTo(w,y0);  // X axis
- ctx.moveTo(x0,0);    ctx.lineTo(x0,h);  // Y axis
- drawGrid(window.innerWidth,window.innerHeight,ctx);
+ ctx.strokeStyle = "#FF0000";
+ ctx.lineWidth = 10;
+
+ drawGrid(1880,350,ctx);
  ctx.stroke();
 }
 
-
 function drawGrid (w, h, ctx) {
  ctx.canvas.width = w;
- ctx.canvas.height = h; for (x = 0; x <= w; x += 20) {
+ ctx.canvas.height = h;
+ for (x = 0; x <= w; x += 40) {
      ctx.moveTo(x, 0);
      ctx.lineTo(x, h);
-     for (y = 0; y <= h; y += 20) {
+     for (y = 0; y <= h; y += 40) {
          ctx.moveTo(0, y);
          ctx.lineTo(w, y);
      }
@@ -163,24 +287,37 @@ function increment(){
 	draw();
 }
 
-
 function success() {
 	var key = document.getElementById("key").value;
-	console.log(key);
+	var topBar = document.getElementById("topBar");
 	if (key == 0x6100cd18c194) {
-		alert('BRAVO !!!');
+    topBar.className = "top-bar done";
 	} else {
-		alert('PAS BRAVO !!!');
+		topBar.className = "top-bar wrong";
 	}
 }
+
+function drawOscillo() {
+	var timeValue = timeStepsStrings[document.getElementById("timeStep").value];
+ 	var voltValue = voltStepsStrings[document.getElementById("voltStep").value];
+ 	document.getElementById("timeValue").innerHTML = timeValue;
+	document.getElementById("voltValue").innerHTML = voltValue;
+	draw();
+}
+
 </script>
 </head>
-<body onload="draw()">
-<div class="top-bar" id="topBar"> Étape 3 : Réglage de l'oscilloscope pour trouver les bits de clef.</div>
-<canvas id="canvas" width=100% height=100%></canvas>
-Frequence de l'horloge (1/s) : <input onchange="draw()" type="text" id="timeStep" value="1">
-Voltage (V): <input onchange="draw()" type="text" id="voltStep" value="1">
-<button type="button" onclick="increment()">Next (<span id="myCounter"></span> / 4)</button>
-Result (hex): <input onchange="success()" type="text" id="key" value="0x">
+<body onload="drawOscillo()">
+<div class="top-bar" id="topBar"> Étape 3 : Analyse les traces obtenues pour retrouver la clé privée.</div>
+<img id="oscillo" src="oscillo.png" width="750" height="496" >
+<div id="parent">
+	<canvas id="canvas" width="2074" height="350"></canvas>
+</div>
+	<input type="range" id="timeStep" min="0" max="10" value="0" oninput="drawOscillo()">
+	<p id="timeValue"></p> <p id="timeUnit"> s/div</p>
+	<input type="range" id="voltStep" min="0" max="10" value="10" oninput="drawOscillo()">
+	<p id="voltValue"></p> <p id="voltUnit"> V/div</p>
+	<button type="button" id="nextTrace" onclick="increment()">Trace suivante (<span id="myCounter"></span>/4)</button>
+	<input onchange="success()" type="text" id="key" placeholder="Clé privée (0x...)">
 </body>
 </html>
