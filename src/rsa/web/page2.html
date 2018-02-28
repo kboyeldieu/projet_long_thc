@@ -61,44 +61,11 @@
       color: white;
     }
 
-    .help {
-      border: none;
-      border-radius: 100%;
-      text-decoration: none;
-      font-size: 50px;
-      padding: 5px 22px;
-      background-color: #f1c40f;
-      opacity:0.8;
-      color: white;
-      -webkit-transition-duration: 0.4s; /* Safari */
-      transition-duration: 0.4s;
-      position: absolute;
-      top: 81%;
-      left: 3%;
-      z-index: 2;
-      cursor: pointer;
-    }
-
-    .help:hover {
-      transform: scale(1.15);
-    }
-
-    .help-box {
-      position:absolute;
-      width:100%;
-      height:50%;
-      background:#24EF2D;
-      display:none;
-      z-index: 3;
-    }
-
   </style>
 </head>
 <body>
   <div class="top-bar" id="topBar"> Étape 2 : Dessoude les condensateurs pour amplifier les différences de consommation instantannée de courant.</div>
   <button class="next disabled" id="next" onclick="changePage()" onhref="#" >&#8250;</button>
-  <button class="help" onmouseover="changeHelpBoxVisibility()" onmouseout="changeHelpBoxVisibility()">?</button>
-  <div class="help-box" id="helpBox"> Help popup</div>
   <div id="container"></div>
   <script>
 
