@@ -61,6 +61,13 @@
       color: white;
     }
 
+    #container {
+      position:fixed;
+      top: 48%;
+      left: 50%;
+      margin-top: -156px;
+      margin-left: -394px;
+    }
 
   </style>
 </head>
@@ -70,10 +77,10 @@
   <div id="container"></div>
   <script>
 
-    var xGoodLeg1 = 562;
-    var yGoodLeg1 = 205.5;
-    var xGoodLeg2 = 543;
-    var yGoodLeg2 = 187.5;
+    var xGoodLeg1 = 342;
+    var yGoodLeg1 = 88;
+    var xGoodLeg2 = 362;
+    var yGoodLeg2 = 107;
     var R = 8;
 
     var width = window.innerWidth;
@@ -149,7 +156,6 @@
             var yLeft = left.start.y();
             var xRight = right.start.x();
             var yRight = right.start.y();
-
             if (correctlyPut(xLeft, yLeft, xGoodLeg1, yGoodLeg1) && correctlyPut(xRight, yRight, xGoodLeg1, yGoodLeg1) ||
                 correctlyPut(xLeft, yLeft, xGoodLeg2, yGoodLeg2) && correctlyPut(xRight, yRight, xGoodLeg2, yGoodLeg2)) {
                 nextButton.className = "next";
@@ -246,15 +252,15 @@
     lineLayer.add(rightLeg);
 
     left = {
-        control: buildStaticAnchor(350, 521.5),
-        start: buildAnchor(350, 521.5),
-        end: buildStaticAnchor(550, 521.5)
+        control: buildStaticAnchor(160, 422),
+        start: buildAnchor(160, 422),
+        end: buildStaticAnchor(360, 422)
     };
 
     right = {
-        control: buildStaticAnchor(859, 521.5),
-        start: buildAnchor(859, 521.5),
-        end: buildStaticAnchor(659, 521.5)
+        control: buildStaticAnchor(669, 422),
+        start: buildAnchor(669, 422),
+        end: buildStaticAnchor(469, 422)
     };
 
     // keep curves insync with the lines
@@ -266,13 +272,13 @@
     imageLayer = new Konva.Layer();
     arduinoImg = new Image();
     arduinoImg.onload = function() {
-      imageLayer.getContext().drawImage(arduinoImg,200,100,788.4,313.2);
+      imageLayer.getContext().drawImage(arduinoImg,0,0,788.4,313.2);
     };
     arduinoImg.src = 'arduino_nano.jpg';
 
     resistanceImg = new Image();
     resistanceImg.onload = function() {
-      imageLayer.getContext().drawImage(resistanceImg,550,500,109,43); 
+      imageLayer.getContext().drawImage(resistanceImg,360,400,109,43); 
     };
     resistanceImg.src = 'resistance.png';
 

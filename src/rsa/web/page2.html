@@ -61,6 +61,17 @@
       color: white;
     }
 
+    #container {
+      position:fixed;
+      top: 48%;
+      left: 50%;
+      margin-top: -156px;
+      margin-left: -394px;
+      width:788.4;
+      height:313.2;
+      cursor:pointer;
+    }
+
   </style>
 </head>
 <body>
@@ -69,13 +80,13 @@
   <div id="container"></div>
   <script>
 
-    var capacitorsX = [247,240,301,478,589,736,807];
-    var capacitorsY = [345.5,295,171,179,275,165,311];
+    var capacitorsX = [47,40,102,277,387,537,608];
+    var capacitorsY = [241,197,71,77,173,66,209];
     var capacitorsR = [25,15,15,15,15,15,25];
     var capacitorsRemoved = [];
 
-    var width = window.innerWidth;
-    var height = window.innerHeight;
+    var width = 788.4;
+    var height = 313.2;
 
     // globals
     var imageLayer, arduinoImg;
@@ -115,7 +126,7 @@
 
     arduinoImg = new Image();
     arduinoImg.onload = function() {
-      imageLayer.getContext().drawImage(arduinoImg,200,100,788.4,313.2);
+      imageLayer.getContext().drawImage(arduinoImg,0,0,788.4,313.2);
     };
     arduinoImg.src = 'arduino_nano_verso.png';
 
