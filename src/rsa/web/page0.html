@@ -32,6 +32,10 @@
       cursor: pointer;
     }
 
+    .next:hover {
+      transform: scale(1.15);
+    }
+
     .disabled {
       cursor: not-allowed;
       color: white;
@@ -130,10 +134,10 @@
       var ok = false;
       var text = textField.value.toLowerCase();
       text = text.replace(/ /g, '');
-      text = text.replace(/=/g, '');
       text = text.replace(/x/g, '');
       text = text.replace(/\*/g, '');
-      if (text === "uri") {
+      text = text.replace(/\./g, '');
+      if (text === "u=ri" || text === "u=ir" || text === "i=u/r") {
           nextButton.className = "next";
           topBar.className = "top-bar done";
       } else {
