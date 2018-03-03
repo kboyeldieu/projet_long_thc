@@ -139,15 +139,15 @@
 <script type="text/javascript">
 
 var voltSteps = [0.001,0.005,0.01,0.05,0.1,0.5,1,1.5,5,10,50];
-var timeSteps = [10000,50000,100000,500000,1000000,3000000,10000000,30000000,50000000,100000000,300000000];
-var timeStepsStrings = ["1e-4","2e-5","1e-5","2e-6","1e-6","3.33e-7","1e-7","3.33e-8","2e-8","1e-8","3.33e-9"];
-var voltStepsStrings = ["0.001","0.005","0.01","0.05","0.1","0.5","1","1.5","5","10","50"];
+var timeSteps = [10000,50000,100000,500000,1000000,3000000,10000000,30000000,50000000,100000000,300000000,500000000,2500000000,5000000000,15000000000,50000000000];
+var timeStepsStrings = ["3.33e-9","1e-8","2e-8","3.33e-8","1e-7","3.33e-7","1e-6","2e-6","5e-6","2e-5","1e-4","5e-4","1e-3","3e-3","1e-2"];
+var voltStepsStrings = ["0.001","0.005","0.01","0.05","0.1","1","2","3","5","10","50"];
 
 var counter = 0;
 
 function fun1(x,i) {
 	var dx = 4;
-	var x0 = .5 + .5*2074;
+	var x0 = .5 + .5*2073;
 	var iMin = Math.round(-x0/dx);
 	if (counter == 0) {
 		if(i <= iMin + 8*Math.PI){
@@ -260,10 +260,7 @@ function showAxes(ctx,axes,canvas) {
  var y0=axes.y0, h=ctx.canvas.height;
  var xmin = axes.doNegativeX ? 0 : x0;
  ctx.beginPath();
- ctx.strokeStyle = "#FF0000";
- ctx.lineWidth = 10;
-
- drawGrid(1880,350,ctx);
+ drawGrid(w,h,ctx);
  ctx.stroke();
 }
 
@@ -294,7 +291,7 @@ function increment(){
 function success() {
 	var key = document.getElementById("key").value;
 	var topBar = document.getElementById("topBar");
-	if (key == 0x6100cd18c194) {
+	if (key == 0x298318b30086) {
     topBar.className = "top-bar done";
 	} else {
 		topBar.className = "top-bar wrong";
@@ -314,11 +311,11 @@ function drawOscillo() {
 <body onload="drawOscillo()">
 <div class="top-bar" id="topBar"> Étape 3 : Analyse les traces obtenues pour retrouver la clé privée.</div>
 <div id="oscillo">
-	<img src="oscillo.png" width="750" height="496">
+	<img id="img" src="oscillo.png" width="750" height="496">
 	<div id="parent">
-		<canvas id="canvas" width="2074" height="350"></canvas>
+		<canvas id="canvas" width="2030" height="350"></canvas>
 	</div>
-	<input type="range" id="timeStep" min="0" max="10" value="0" oninput="drawOscillo()">
+	<input type="range" id="timeStep" min="0" max="14" value="0" oninput="drawOscillo()">
 	<p id="timeValue"></p> <p id="timeUnit"> s/div</p>
 	<input type="range" id="voltStep" min="0" max="10" value="10" oninput="drawOscillo()">
 	<p id="voltValue"></p> <p id="voltUnit"> V/div</p>
