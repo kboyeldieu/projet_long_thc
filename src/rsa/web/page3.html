@@ -130,6 +130,11 @@
     color: white;
   }
 
+  .almost-done {
+      background-color: #F39C12;
+      color: white;
+    }
+
   .wrong {
     background-color: #e74c3c;
     color: white;
@@ -303,6 +308,14 @@ function drawOscillo() {
    var voltValue = voltStepsStrings[document.getElementById("voltStep").value];
    document.getElementById("timeValue").innerHTML = timeValue;
   document.getElementById("voltValue").innerHTML = voltValue;
+
+  if ( voltValue == "2" || voltValue == "3" || timeValue == "2e-6" ) {
+        if ((voltValue == "2" || voltValue == "3") && timeValue == "2e-6") {
+        	topBar.className = "top-bar done";
+        } else {
+        	topBar.className = "top-bar almost-done";
+    	}
+      }
   draw();
 }
 
