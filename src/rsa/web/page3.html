@@ -296,8 +296,9 @@ function increment(){
 function success() {
   var key = document.getElementById("key").value;
   var topBar = document.getElementById("topBar");
-  if (key == 0x298318b30086) {
+  if (key == 0b001010011000001100011000101100110000000010000110) {
     topBar.className = "top-bar done";
+    alert("well done");
   } else {
     topBar.className = "top-bar wrong";
   }
@@ -337,6 +338,6 @@ function drawOscillo() {
 
 
   
-  <input onchange="success()" type="text" id="key" placeholder="Clé privée (0x...)">
+  <input onchange="success()" type="text" id="key" placeholder="Clé privée (0b...)">
 </body>
 </html>
