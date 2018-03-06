@@ -5,8 +5,7 @@ import time
 from fractions import gcd
 from flask import Flask, request, jsonify, Response, render_template
 
-port = serial.Serial("/dev/ttyS0",baudrate=115200, timeout=5.0)
-port.write('\x00')
+port = serial.Serial("/dev/ttyS0",baudrate=115200, timeout=1.0)
 app = Flask("server")
 
 def _remove_leading_zeroes(s):
@@ -18,7 +17,6 @@ def _remove_leading_zeroes(s):
 def _get_signature(rcv, signature_length):
     if rcv:
         signatures = ''.join([format(ord(byte), "#04x")[2:][::-1] for byte in rcv])
-        print(signatures)
         for signature in signatures.split('ff'*6):
             if len(signature) == signature_length:
                 return _remove_leading_zeroes(signature[::-1])
@@ -32,7 +30,7 @@ def _format_if_necessary(x):
 
 @app.route('/', methods = ['GET'])
 def root():
-    return render_template('tutorial1.html')
+    return render_template('tutorial.html')
 
 @app.route('/get_last_signature', methods = ['GET'])
 def get_last_signature():
@@ -49,7 +47,6 @@ def get_last_signature():
 def get_pgcd():
     a = int(request.args.get('a'), 16)
     b = int(request.args.get('b'), 16)
-    
     return jsonify(_format_if_necessary(hex(gcd(a,b))))
 
 @app.route('/arithmetic', methods = ['GET'])
@@ -67,41 +64,10 @@ def operation():
         # division
         return jsonify(_format_if_necessary(hex(a/b)))
 
-@app.route('/tutorial1/check-answer', methods = ['GET'])
+@app.route('/check-answer', methods = ['GET'])
 def check_answer_tutorial1():
     expected_q = "0x704905c14b"
     expected_p = "0x6c9ee08481"
-    answer = set((expected_q, expected_p))
-    p = request.args.get('p')
-    q = request.args.get('q')
-    if set((p,q)) == answer:
-        return jsonify(2)
-    elif p in answer or q in answer:
-        return jsonify(1)
-    else:
-        return jsonify(0)
-
-@app.route('/tutorial2', methods = ['GET'])
-def tutorial2():
-    return render_template('tutorial2.html')
-
-@app.route("/tutorial2/send-fault", methods = ['GET'])
-def send_fault_tutorial2():
-    R = 7
-    expected_x = 237
-    expected_y = 217
-    x = int(request.args.get('x'))
-    y = int(request.args.get('y'))
-    if (x - expected_x)**2 + (y - expected_y)**2 <= R*R:
-        port.write('\x3f\x3f\x3f\x3f\x3f\x3f') # bin(0x3f) = 0b111111
-        port.write('\x00')
-        return jsonify(1)
-    return jsonify(0)
-
-@app.route("/tutorial2/check-answer", methods = ['GET'])
-def check_answer_tutorial2():
-    expected_q = "0x1234"
-    expected_p = "0x5678"
     answer = set((expected_q, expected_p))
     p = request.args.get('p')
     q = request.args.get('q')
